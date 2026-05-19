@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -106,5 +107,19 @@ export class ToolsController {
     @Body() updateToolDto: UpdateToolDto,
   ): Promise<ToolCreateResponse> {
     return this.toolsService.update(id, updateToolDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({
+    summary: 'Delete a tool',
+  })
+  @ApiOkResponse({
+    description: 'Tool deleted successfully',
+  })
+  remove(
+    @Param('id', ParseIntPipe)
+    id: number,
+  ): Promise<{ message: string }> {
+    return this.toolsService.remove(id);
   }
 }

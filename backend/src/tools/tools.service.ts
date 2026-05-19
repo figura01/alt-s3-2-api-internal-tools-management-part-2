@@ -356,4 +356,25 @@ export class ToolsService {
 
     return filters;
   }
+
+  async remove(id: number): Promise<{ message: string }> {
+    const tool = await this.prisma.tool.findUnique({
+      where: { id },
+    });
+
+    if (!tool) {
+      throw new NotFoundException({
+        error: 'Tool not found',
+        message: `Tool with ID ${id} does not exist`,
+      });
+    }
+
+    await this.prisma.tool.delete({
+      where: { id },
+    });
+
+    return {
+      message: `Tool with ID ${id} deleted successfully`,
+    };
+  }
 }
