@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ToolsModule } from './tools/tools.module';
 import { LoggerModule } from 'nestjs-pino';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { LoggerModule } from 'nestjs-pino';
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
       },
     }),
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
