@@ -1,23 +1,22 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsInt, IsNumber, IsOptional, Max, Min } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
 
-export class ExpensiveToolsQueryDto {
+import type { SortOrder } from '../types/analytics.types';
+
+export class DepartmentCostsQueryDto {
   @ApiPropertyOptional({
-    example: 10,
-    minimum: 1,
-    maximum: 100,
+    example: 'total_cost',
+    enum: ['department', 'total_cost', 'tools_count', 'total_users'],
   })
   @IsOptional()
-  @IsInt()
-  @Min(1)
-  @Max(100)
-  limit?: number = 10;
+  @IsIn(['department', 'total_cost', 'tools_count', 'total_users'])
+  sort_by?: 'department' | 'total_cost' | 'tools_count' | 'total_users';
 
   @ApiPropertyOptional({
-    example: 50,
+    example: 'desc',
+    enum: ['asc', 'desc'],
   })
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  min_cost?: number;
+  @IsIn(['asc', 'desc'])
+  order?: SortOrder;
 }
