@@ -6,12 +6,15 @@ import { AnalyticsService } from './analytics.service';
 
 import { DepartmentCostsQueryDto } from './dto/department-costs-query.dto';
 import { ExpensiveToolsQueryDto } from './dto/expensive-tools-query.dto';
+import { LowUsageToolsQueryDto } from './dto/low-usage-tools-query.dto';
 
 import type {
   DepartmentCostsResponse,
+  ExpensiveToolsResponse,
+  LowUsageToolsResponse,
   ToolsByCategoryResponse,
+  VendorSummaryResponse,
 } from './types/analytics.types';
-import type { ExpensiveToolsResponse } from './types/analytics.types';
 
 @ApiTags('analytics')
 @Controller('analytics')
@@ -55,5 +58,30 @@ export class AnalyticsController {
   })
   getToolsByCategory(): Promise<ToolsByCategoryResponse> {
     return this.analyticsService.getToolsByCategory();
+  }
+
+  @Get('low-usage-tools')
+  @ApiOperation({
+    summary: 'Get low usage tools analytics',
+  })
+  @ApiOkResponse({
+    description: 'Low usage tools analytics retrieved successfully',
+  })
+  getLowUsageTools(
+    @Query()
+    query: LowUsageToolsQueryDto,
+  ): Promise<LowUsageToolsResponse> {
+    return this.analyticsService.getLowUsageTools(query);
+  }
+
+  @Get('vendor-summary')
+  @ApiOperation({
+    summary: 'Get vendor analytics summary',
+  })
+  @ApiOkResponse({
+    description: 'Vendor summary analytics retrieved successfully',
+  })
+  getVendorSummary(): Promise<VendorSummaryResponse> {
+    return this.analyticsService.getVendorSummary();
   }
 }
