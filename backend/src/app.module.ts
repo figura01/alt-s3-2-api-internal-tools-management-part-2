@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ToolsModule } from './tools/tools.module';
 import { LoggerModule } from 'nestjs-pino';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
       },
     }),
     AnalyticsModule,
+    PrismaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
