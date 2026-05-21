@@ -54,9 +54,17 @@
   --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
   --gradient-pink: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   --gradient-orange: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+
+  --bg-layout: oklch(0.965 0.004 260);
+
+  --text-navlink: oklch(0.45 0.02 260);
+  --text-navlink-hover: oklch(0.2 0.02 260);
+  --text-navlink-active: oklch(0.2 0.02 260);
 }
 
 .dark {
+  --bg-layout: oklch(0.105 0.012 260);
+
   --background: oklch(0.105 0.012 260);
   --foreground: oklch(0.98 0.006 260);
 
@@ -99,6 +107,10 @@
   --sidebar-accent-foreground: oklch(0.96 0.01 260);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.74 0.22 285);
+
+  --text-navlink: oklch(0.68 0.02 260);
+  --text-navlink-hover: oklch(0.98 0.01 260);
+  --text-navlink-active: oklch(0.98 0.01 260);
 }
 
 @theme inline {
@@ -149,6 +161,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --color-bg-layout: var(--bg-layout);
+
+  --color-text-navlink: var(--text-navlink);
+  --color-text-navlink-hover: var(--text-navlink-hover);
+  --color-text-navlink-active: var(--text-navlink-active);
 }
 
 @layer base {
@@ -173,12 +191,28 @@
 }
 
 @layer utilities {
-  .app-gradient-bg {
+  .app-bg {
+    background: var(--bg-layout);
+  }
+
+  .dark .app-bg {
     background:
       radial-gradient(circle at top left, rgba(139, 92, 246, 0.22), transparent 34%),
       radial-gradient(circle at top right, rgba(236, 72, 153, 0.18), transparent 30%),
       radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.16), transparent 35%),
-      var(--background);
+      var(--bg-layout);
+  }
+
+  .status-active {
+    @apply border border-emerald-500/25 bg-emerald-500/10 text-emerald-400;
+  }
+
+  .status-expiring {
+    @apply border border-orange-500/25 bg-orange-500/10 text-orange-400;
+  }
+
+  .status-unused {
+    @apply border border-red-500/25 bg-red-500/10 text-red-400;
   }
 
   .glass-card {
