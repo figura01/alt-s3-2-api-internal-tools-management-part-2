@@ -1,4 +1,5 @@
-import type { Analytics } from "@/types/analytic";
+import { api } from "@/lib/api";
+import type { KpiAnalytics, Analytics } from "@/types/analytic";
 
 export async function getAnalyticsForDepartementByCost(): Promise<Analytics> {
   const response = await fetch(
@@ -46,4 +47,10 @@ export async function getAnalyticsForVendorSummary(): Promise<Analytics> {
   }
 
   return response.json();
+}
+
+export function getAnalytics() {
+  return api<KpiAnalytics>("/analytics", {
+    cache: "no-store",
+  });
 }

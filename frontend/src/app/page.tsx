@@ -1,24 +1,74 @@
 import HeaderPage from "@/components/header-page";
-import SectionKPIs from "@/components/kpis/section-kpis";
+// import SectionKPIs from "@/components/dashboard/kpis/section-kpis";
+import KpiGrid from "@/components/kpis/kpi-grid";
 import RecentsTools from "@/components/tools/table-recent-tools";
-import { getRecentToolsForTable } from "@/services/tools.service";
+import { getRecentToolsForTable, getTools } from "@/services/tools.service";
+import { getAnalytics } from "@/services/analytics.service";
+import { getDepartments } from "@/services/departments.service";
 
 export default async function Home() {
-  const recentTools = (await getRecentToolsForTable()).slice(1, 8);
-  console.log("data recentTools: ", recentTools);
+  const [analytics, tools, departments, recentTools] = await Promise.all([
+    getAnalytics(),
+    getTools(),
+    getDepartments(),
+    getRecentToolsForTable(),
+  ]);
+
+  const activeToolsCount = tools.filter(
+    (tool) => tool.status === "active",
+  ).length;
+
+  console.log("Analytics:", analytics);
+  console.log("Tools:", tools);
+  console.log("Departments:", departments);
+  console.log("Recent Tools:", recentTools);
+
+  const kpis = [
+    {
+      title: "Monthly Budget",
+      value: analytics.budget_overview.current_month_total,
+      suffix: `/ ${analytics.budget_overview.monthly_limit / 1000}k`,
+      trend: analytics.kpi_trends.budget_change,
+      progress: Number(analytics.budget_overview.budget_utilization),
+      variant: "green",
+      format: "currency",
+    },
+    {
+      title: "Active Tools",
+      value: activeToolsCount,
+      trend: analytics.kpi_trends.tools_change,
+      variant: "blue",
+      format: "number",
+    },
+    {
+      title: "Departments",
+      value: departments.length,
+      trend: analytics.kpi_trends.departments_change,
+      variant: "orange",
+      format: "number",
+    },
+    {
+      title: "Cost per User",
+      value: analytics.cost_analytics.cost_per_user,
+      trend: analytics.kpi_trends.cost_per_user_change,
+      variant: "pink",
+      format: "currency",
+    },
+  ] as const;
+
+  console.log("KPIs:", kpis);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-4">
+    <div className="flex flex-col items-center justify-center gap-6">
       <HeaderPage
         title="Internal Tools Dashboard"
         subtitle="Monitor and manage tour organization's software tools and expenses"
       />
-      <section className="flex flex-row max-w-7xl px-0 py-2 w-full">
-        <SectionKPIs />
-      </section>
+
+      <KpiGrid kpis={kpis} />
 
       <section className="w-full max-w-7xl px-0 py-2">
-        <RecentsTools tools={recentTools} />
+        <RecentsTools tools={tools} />
       </section>
     </div>
   );

@@ -49,11 +49,12 @@
   --sidebar-border: oklch(0.88 0.015 260);
   --sidebar-ring: oklch(0.62 0.22 285);
 
-  --gradient-green: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-  --gradient-blue: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  --gradient-green: linear-gradient(135deg, #00B580 0%, #018576 100%);
+  --gradient-blue: linear-gradient(135deg, #5372FF 0%, #7223C3 100%);
   --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
-  --gradient-pink: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
-  --gradient-orange: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+  --gradient-pink: linear-gradient(135deg, #F42989 0%, #950330 100%);
+  --gradient-orange: linear-gradient(135deg, #FF5F18 0%, #D70F66 100%);
+  --gradient-red: linear-gradient(135deg, #FA2A37 0%, #EA003E 100%);
 
   --bg-layout: oklch(0.965 0.004 260);
 
@@ -216,7 +217,7 @@
   }
 
   .glass-card {
-    @apply border border-white/10 bg-card/80 shadow-2xl backdrop-blur-xl;
+    @apply border border-white/10 bg-card/80 shadow-md backdrop-blur-sm;
   }
 
   .gradient-green {
@@ -233,6 +234,10 @@
 
   .gradient-pink {
     background: var(--gradient-pink);
+  }
+
+  .gradient-red {
+    background: var(--gradient-red);
   }
 
   .gradient-orange {

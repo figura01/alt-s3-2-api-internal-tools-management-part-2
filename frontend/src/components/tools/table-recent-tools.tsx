@@ -7,13 +7,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Calendar1 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Calendar } from "lucide-react";
+import { CustomBadge } from "@/components/ui/custom-badge";
 
 import { CustomImage } from "@/components/custom-image";
 
 import type { ToolForTable } from "@/types/tool";
 import { formatCurrency } from "@/utils/formatCurrency";
+import { gradients } from "@/lib/gradients";
 
 type Props = {
   tools: ToolForTable[];
@@ -24,7 +25,7 @@ const TableRecentTools = ({ tools }: Props) => {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Recently Edited Tools</CardTitle>
+        <CardTitle>Recent Tools</CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
           <span>Last 30 days</span>
@@ -51,24 +52,31 @@ const TableRecentTools = ({ tools }: Props) => {
                       alt={String(tool.name)}
                     />
                   )}{" "}
-                  {tool.name}
+                  {tool.name.length > 20
+                    ? tool.name.slice(0, 20) + "..."
+                    : tool.name}
                 </TableCell>
                 <TableCell>{tool.owner_department}</TableCell>
                 <TableCell>{tool.users}</TableCell>
                 <TableCell>&euro;{formatCurrency(tool.monthly_cost)}</TableCell>
                 <TableCell>
-                  <Badge
-                    variant="default"
-                    className={
-                      tool.status === "active"
-                        ? "status-active"
-                        : tool.status === "unused"
-                          ? "status-unused"
-                          : "status-expiring"
-                    }
-                  >
-                    {tool.status}
-                  </Badge>
+                  {tool.status === "active" ? (
+                    <CustomBadge angle={90} {...gradients.green}>
+                      {tool.status}
+                    </CustomBadge>
+                  ) : tool.status === "unused" ? (
+                    <CustomBadge angle={90} {...gradients.red}>
+                      {tool.status}
+                    </CustomBadge>
+                  ) : tool.status === "expiring" ? (
+                    <CustomBadge angle={90} {...gradients.orange}>
+                      {tool.status}
+                    </CustomBadge>
+                  ) : (
+                    <CustomBadge angle={90} {...gradients.pink}>
+                      {tool.status}
+                    </CustomBadge>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

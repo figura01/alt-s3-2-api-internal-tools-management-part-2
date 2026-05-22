@@ -1,36 +1,391 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Internal Tools Frontend
 
-## Getting Started
+Frontend moderne SaaS développé avec Next.js 15, React 19, Tailwind CSS v4, shadcn/ui et TanStack Query pour la gestion d’un dashboard analytics autour de la gestion d’outils internes d’entreprise.
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Quick Start
+## Installation
+```bash 
+    cd frontend && npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Lancement du projet
+Avec Docker a la racine du repo
+```bash
+docker compose up --build
+```
+Sans Docker
+```bash
+cd frontend && npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Application disponible sur :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+http://localhost:3000
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+## Configuration
+Variables d’environnement
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Créer :
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+frontend/.env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+API_URL=http://api:3000/api
+🏗️ Architecture
 
-## Deploy on Vercel
+Le frontend repose sur une architecture modulaire orientée :
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+feature-driven ;
+design-system ;
+SSR + client caching ;
+séparation UI / logique métier.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Structure du projet
+src/
+│
+├── app/
+│   ├── analytics/
+│   ├── tools/
+│   └── dashboard/
+│
+├── components/
+│   ├── dashboard/
+│   ├── tools/
+│   ├── analytics/
+│   └── ui/
+│
+├── services/
+│
+├── hooks/
+│
+├── schemas/
+│
+├── types/
+│
+├── lib/
+│
+├── utils/
+│
+└── providers/
+
+## Organisation
+app/
+Contient les pages Next.js App Router :
+- Dashboard 
+- Tools 
+- Analytics
+
+components/
+
+Découpage :
+- composants métiers ;
+- composants UI ;
+- wrappers design system.
+- services/
+
+Centralisation des appels API :
+- fetch SSR ;
+- mutations ;
+- endpoints JSON server.
+
+schemas/
+Validation avec :
+- Zod ;
+- React Hook Form.
+  
+lib/
+Infrastructure partagée :
+- api.ts
+- query-client.ts
+- utils.ts
+  
+## Design System Evolution
+
+Le design system a été construit progressivement autour de :
+- shadcn/ui ;
+- Tailwind CSS v4 ;
+- variables CSS ;
+- gradients personnalisés.
+
+Philosophie
+Objectifs :
+- cohérence visuelle ;
+- scalabilité ;
+- réutilisabilité ;
+- maintenance simple.
+- Éléments clés
+
+## Gradients
+Création d’un système de gradients réutilisables :
+- gradient-green
+- gradient-blue
+- gradient-orange
+- gradient-pink
+- Custom Components
+
+Création de composants :
+- CustomBadge
+- CustomProgress
+- ToolLogo
+
+afin de conserver :
+- cohérence ;
+- accessibilité ;
+- abstraction UI.
+
+## Dark Mode
+Gestion via :
+next-themes
+variables CSS
+Tailwind CSS v4.
+
+## Navigation & User Journey
+
+Le flow utilisateur principal :
+
+Dashboard
+   ↓
+Tools List
+   ↓
+Tool Details
+   ↓
+Edit Tool
+   ↓
+Analytics
+
+## Dashboard
+
+Vue synthétique :
+- KPI ;
+- coûts ;
+- alertes ;
+- outils récents.
+
+Tools
+- Gestion :
+- listing ;
+- recherche ;
+- pagination ;
+- édition ;
+- création.
+
+Analytics
+Visualisation :
+- coûts ;
+- usage ;
+- catégories ;
+- tendances.
+
+
+## Data Integration Strategy
+
+Le frontend consomme un JSON server simulant une API SaaS.
+
+Architecture des données
+Frontend
+   ↓
+services/
+   ↓
+lib/api.ts
+   ↓
+JSON Server API
+
+## SSR
+
+Les pages principales utilisent :
+- Server Components ;
+- fetch serveur ;
+- hydratation minimale.
+- Client Caching
+
+TanStack Query utilisé pour :
+- mutations ;
+- invalidation ;
+- cache ;
+- optimistic updates futures.
+
+Typage
+Types séparés :
+- API DTO ;
+- formulaires ;
+- UI.
+
+## Progressive Responsive Design
+
+Approche :
+
+- mobile-first ;
+- progressive enhancement.
+
+Breakpoints
+Utilisation Tailwind :
+- sm
+- md
+- lg
+- xl
+
+## Adaptation
+Dashboard
+- KPI responsive ;
+- stack mobile ;
+- grid desktop.
+- Data Tables
+- scroll horizontal mobile ;
+- pagination adaptative.
+- Forms
+- mono-colonne mobile ;
+- bi-colonne desktop.
+
+## Testing Strategy
+
+Stratégie prévue :
+- Unit Tests
+
+Technologies :
+- Vitest ;
+- React Testing Library.
+- Tests ciblés
+- services ;
+- utils ;
+- validation Zod ;
+- composants UI critiques.
+
+## QA
+
+Checklist :
+- responsive ;
+- dark mode ;
+- loading states ;
+- empty states ;
+- fallback images ;
+- erreurs réseau.
+
+## Performance Optimizations
+
+Optimisations appliquées :
+- SSR
+- Réduction du JS client :
+- fetch serveur ;
+- rendu initial rapide.
+- Parallel Fetching
+
+Utilisation de :
+- Promise.all()
+pour :
+- analytics ;
+- tools ;
+- departments.
+- Image Handling
+
+Gestion :
+- fallback images ;
+- lazy loading ;
+- optimisation Next/Image.
+- Data Fetching
+
+Centralisation via :
+- lib/api.ts
+
+afin de :
+- mutualiser ;
+- simplifier ;
+- préparer auth/token refresh.
+
+Design Consistency Approach
+La cohérence a été maintenue grâce à :
+
+- Tokens visuels
+- gradients ;
+- radius ;
+- spacing ;
+- shadows ;
+- variables CSS.
+- Composants abstraits
+
+Création de :
+- CustomBadge
+- CustomProgress
+- GlassCard
+
+Naming Convention
+Uniformisation :
+
+- variants ;
+- status ;
+- couleurs ;
+- composants.
+
+## Data Visualization Philosophy
+
+Objectif :
+- lisibilité ;
+- minimalisme ;
+- dashboard SaaS moderne.
+
+## Charts
+
+Prévu avec :
+- Recharts ;
+- intégration Tailwind/shadcn.
+
+Philosophie graphique
+Favoriser :
+- KPI simples ;
+- micro-interactions ;
+- gradients subtils ;
+- faible charge cognitive.
+
+Progress Bars
+Création d’un composant custom :
+- gradients ;
+- pill shape ;
+- labels intégrés.
+- 
+🔮 Next Steps / Complete App Vision
+
+Évolutions envisagées :
+- Authentification
+- JWT ;
+- RBAC ;
+- multi-tenant.
+- Real Backend
+
+Migration :
+JSON Server
+→ NestJS + Prisma.
+
+Analytics avancées
+- dépenses par équipe ;
+- forecasting ;
+- AI insights ;
+- alerting.
+
+
+Collaboration
+- commentaires ;
+- approval workflow ;
+- audit logs.
+
+Monitoring
+- Sentry ;
+- logs ;
+- analytics produit.
+
+UX
+- drag & drop ;
+- animations Framer Motion ;
+- onboarding ;
+- keyboard navigation.
+
+Stack Technique
+Technologie	Usage
+- Next.js 15	Framework
+- React 19	UI
+- Tailwind CSS v4	Styling
+- shadcn/ui	Design System
+- TanStack Query	Data Fetching
+- React Hook Form	Forms
+- Zod	Validation
+- Docker	Containerisation
+- TypeScript	Typage
+- JSON Server	Mock API
