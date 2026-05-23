@@ -1,77 +1,55 @@
+// src/types/tool.ts
+
+export type ToolStatus = "active" | "unused" | "expiring";
+
 export type Tool = {
-  id: number;
-  name: string;
-  description: string;
-  vendor: string;
-  category: string;
-  monthly_cost: number;
-  previous_month_cost: number;
-  owner_department: string;
-  status: "active" | "unused" | "expiring";
-  website_url: string;
-  active_users_count: number | string;
-  icon_url: string;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ToolForTable = {
-  id: number;
-  name: string;
-  icon_url: string;
-  owner_department: string;
-  users: number | string;
-  monthly_cost: number;
-  status: "active" | "unused" | "expiring";
-};
-
-export type InputTool = {
-  name: string;
-  description: string;
-  vendor: string;
-  website_url: string;
-  category_id: number;
-  monthly_cost: number;
-  owner_department: string;
-};
-
-export type OutputTool = {
-  id: number;
-  name: string;
-  description: string;
-  vendor: string;
-  website_url: string;
-  category: string;
-  monthly_cost: number;
-  owner_department: string;
-  status: string;
-  active_users_count: number;
-  created_at: string;
-  updated_at: string;
-};
-
-export type ApiJsonTool = {
-  last_update?: string;
   id?: number;
   name: string;
-  description: string;
+  description?: string;
   vendor?: string;
   category?: string;
-  monthly_cost?: number;
-  previous_month_cost?: number;
   owner_department?: string;
   department?: string;
-  status?: string;
+  status: ToolStatus;
   website_url?: string;
-  active_users_count?: number;
   icon_url?: string;
+  monthly_cost?: number;
+  previous_month_cost?: number;
+  active_users_count?: number;
   created_at?: string;
   updated_at?: string;
+  last_update?: string;
 };
 
-export type KpiTool = {
-  id: number;
+/* -------------------------------------------------------------------------- */
+/*                                API RAW TYPE                                */
+/* -------------------------------------------------------------------------- */
+
+export type ApiJsonTool = Partial<{
+  id: number | string;
   name: string;
-  status: "active" | "unused" | "expiring";
+  description: string;
+  vendor: string;
+  category: string;
+  owner_department: string;
+  department: string;
+  status: string;
+  website_url: string;
+  icon_url: string;
   monthly_cost: number | string;
+  previous_month_cost: number | string;
+  active_users_count: number | string;
+  created_at: string;
+  updated_at: string;
+  last_update: string;
+}>;
+
+export type ToolForRecentTable = {
+  id?: number;
+  name: string;
+  icon_url: string;
+  owner_department: string;
+  users: number | "N/A";
+  monthly_cost: number;
+  status: ToolStatus;
 };
