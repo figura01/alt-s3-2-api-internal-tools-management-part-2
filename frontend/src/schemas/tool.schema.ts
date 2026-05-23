@@ -1,77 +1,43 @@
-// src/schemas/tool.schema.ts
+// tool.schema.ts
 
 import { z } from "zod";
 
 export const toolStatusSchema = z.enum(["active", "unused", "expiring"]);
 
-/* -------------------------------------------------------------------------- */
-/*                                   CREATE                                   */
-/* -------------------------------------------------------------------------- */
-
-export const toolFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, "Name must contain at least 2 characters")
-    .max(100, "Name is too long"),
-
-  description: z
-    .string()
-    .min(2, "Description is required")
-    .max(500, "Description is too long"),
-
-  vendor: z.string().max(100).optional(),
-
-  category: z.string().max(100).optional(),
-
-  owner_department: z.string().max(100).optional(),
-
-  department: z.string().max(100).optional(),
-
+export const toolSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(2),
+  description: z.string().min(2),
+  vendor: z.string().optional(),
+  category: z.string().optional(),
+  owner_department: z.string().optional(),
+  department: z.string().optional(),
   status: toolStatusSchema.default("active"),
-
-  website_url: z
-    .union([z.string().url("Invalid website URL"), z.literal("")])
-    .optional(),
-
-  icon_url: z
-    .union([z.string().url("Invalid icon URL"), z.literal("")])
-    .optional(),
-
-  monthly_cost: z.coerce
-    .number("Monthly cost must be a number")
-    .min(0, "Monthly cost cannot be negative")
-    .optional(),
-
-  previous_month_cost: z.coerce
-    .number("Previous month cost must be a number")
-    .min(0, "Previous month cost cannot be negative")
-    .optional(),
-
-  active_users_count: z.coerce
-    .number("Active users count must be a number")
-    .int("Must be an integer")
-    .min(0, "Cannot be negative")
-    .optional(),
+  website_url: z.string().url().optional().or(z.literal("")),
+  icon_url: z.string().url().optional().or(z.literal("")),
+  monthly_cost: z.coerce.number().optional(),
+  previous_month_cost: z.coerce.number().optional(),
+  active_users_count: z.coerce.number().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().optional(),
 });
 
-export type ToolFormInput = z.input<typeof toolFormSchema>;
+export type Tool = z.infer<typeof toolSchema>;
 
-export type ToolFormValues = z.output<typeof toolFormSchema>;
-
-/* -------------------------------------------------------------------------- */
-/*                                    UPDATE                                  */
-/* -------------------------------------------------------------------------- */
-
-export const updateToolFormSchema = toolFormSchema.partial().extend({
-  status: toolStatusSchema.optional(),
+export const createToolSchema = toolSchema.omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
 });
 
-export type UpdateToolFormInput = z.input<typeof updateToolFormSchema>;
+export const updateToolSchema = toolSchema.partial().extend({
+  id: z.number(),
+});
 
-export type UpdateToolFormValues = z.output<typeof updateToolFormSchema>;
+export type CreateToolInput = z.input<typeof createToolSchema>;
 
-/* -------------------------------------------------------------------------- */
-/*                                   SHARED                                   */
-/* -------------------------------------------------------------------------- */
+export type CreateToolValues = z.output<typeof createToolSchema>;
 
-export type ToolStatus = z.infer<typeof toolStatusSchema>;
+export type UpdateToolInput = z.input<typeof updateToolSchema>;
+
+export type UpdateToolValues = z.output<typeof updateToolSchema>;
