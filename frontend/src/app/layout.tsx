@@ -5,7 +5,7 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppHeader from "@/components/layout/app-header";
-import Footer from "@/components/footer";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
