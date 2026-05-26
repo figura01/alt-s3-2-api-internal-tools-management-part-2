@@ -2,6 +2,8 @@
 
 import { Download } from "lucide-react";
 
+import type { Department } from "@/types/department";
+
 import { Button } from "@/components/ui/button";
 
 import {
@@ -12,7 +14,25 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function AnalyticsHeader() {
+type Props = {
+  range: string;
+
+  onRangeChange: (value: string) => void;
+
+  department: string;
+
+  onDepartmentChange: (value: string) => void;
+
+  departments: Department[];
+};
+
+export function AnalyticsHeader({
+  range,
+  onRangeChange,
+  department,
+  onDepartmentChange,
+  departments,
+}: Props) {
   return (
     <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div>
@@ -26,7 +46,7 @@ export function AnalyticsHeader() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Select defaultValue="30d">
+        <Select value={range} onValueChange={onRangeChange}>
           <SelectTrigger className="w-40">
             <SelectValue />
           </SelectTrigger>
@@ -40,17 +60,22 @@ export function AnalyticsHeader() {
           </SelectContent>
         </Select>
 
-        <Select defaultValue="all">
-          <SelectTrigger className="w-48">
+        <Select value={department} onValueChange={onDepartmentChange}>
+          <SelectTrigger className="w-52">
             <SelectValue />
           </SelectTrigger>
 
           <SelectContent>
             <SelectItem value="all">All departments</SelectItem>
-            <SelectItem value="engineering">Engineering</SelectItem>
-            <SelectItem value="marketing">Marketing</SelectItem>
-            <SelectItem value="design">Design</SelectItem>
-            <SelectItem value="operations">Operations</SelectItem>
+
+            {departments.map((department) => (
+              <SelectItem
+                key={department.id}
+                value={department.name.toLowerCase()}
+              >
+                {department.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
