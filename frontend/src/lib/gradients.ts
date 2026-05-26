@@ -10,8 +10,8 @@ export const gradients = {
   },
 
   orange: {
-    from: "#f97316",
-    to: "#fbbf24",
+    from: "#fbbf24",
+    to: "#f97316",
   },
 
   pink: {
