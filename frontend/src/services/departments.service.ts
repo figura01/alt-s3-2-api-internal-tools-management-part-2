@@ -1,8 +1,10 @@
-import { api } from "@/lib/api";
-import type { KpiDepartment } from "@/types/department";
+// src/services/departments.service.ts
 
-export function getDepartments() {
-  return api<KpiDepartment[]>("/departments", {
+import { api } from "@/lib/api";
+import type { Department } from "@/types/department";
+
+export async function getDepartments(): Promise<Department[]> {
+  return api<Department[]>("/departments", {
     cache: "no-store",
   });
 }
