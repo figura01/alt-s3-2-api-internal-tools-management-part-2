@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 export const dynamic = "force-dynamic";
 import { ChevronLeft } from "lucide-react";
-import { ApiJsonTool } from "@/types/tool";
+
 import Image from "next/image";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 const DetailToolPage = async ({ params }: { params: { idTool: string } }) => {
   const { idTool } = await params;
-  const tool = await getToolById(idTool);
+  const tool = await getToolById(Number(idTool));
 
   console.log("tool:", tool);
   return (
