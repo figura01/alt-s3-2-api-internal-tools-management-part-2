@@ -6,7 +6,7 @@
 
 "use client";
 
-import header from "@/components/header";
+import { CustomBadge } from "@/components/ui/custom-badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { CustomImage } from "@/components/custom-image";
@@ -22,24 +22,45 @@ import {
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import type { Tool } from "@/types/tool";
+import { formatDate } from "@/utils/formatDate";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
-export type T = {
-  id: string;
-  icon_url: string;
-  name: string;
-  description: string;
-  category: string;
-  status: "active" | "expired" | "unused";
-  user_count: number;
-  monthly_cost: number;
-  last_update: Date;
-  department: string;
-  quick_actions: string[];
+// export type T = {
+//   id: string;
+//   icon_url: string;
+//   name: string;
+//   description: string;
+//   category: string;
+//   status: "active" | "expired" | "unused";
+//   user_count: number;
+//   monthly_cost: number;
+//   last_update: Date;
+//   department: string;
+//   quick_actions: string[];
+// };
+
+import { gradients } from "@/lib/gradients";
+
+const renderBadge = (status: string) => {
+  console.log("Rendering badge for status: ", status); // Debug log
+  return status === "active" ? (
+    <CustomBadge angle={90} {...gradients.green}>
+      {status}
+    </CustomBadge>
+  ) : status === "unused" ? (
+    <CustomBadge angle={90} {...gradients.red}>
+      {status}
+    </CustomBadge>
+  ) : (
+    <CustomBadge angle={90} {...gradients.orange}>
+      {status}
+    </CustomBadge>
+  );
 };
 
-export const columns: ColumnDef<T>[] = [
+export const columns: ColumnDef<Tool>[] = [
   {
     accessorKey: "icon_url",
     header: "Tool Icon",
@@ -73,6 +94,10 @@ export const columns: ColumnDef<T>[] = [
   {
     accessorKey: "status",
     header: "Status",
+    cell: ({ row }) => {
+      const value = row.original.status;
+      return renderBadge(value);
+    },
   },
   {
     accessorKey: "active_users_count",
@@ -85,6 +110,10 @@ export const columns: ColumnDef<T>[] = [
   {
     accessorKey: "last_update",
     header: "Last Update",
+    cell: ({ row }) => {
+      const value = row.original.last_update;
+      return value ? formatDate(String(value)) : "N/A";
+    },
   },
   {
     accessorKey: "department",
