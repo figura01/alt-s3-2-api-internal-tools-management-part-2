@@ -2,14 +2,20 @@ import HeaderPage from "@/components/header-page";
 // import SectionKPIs from "@/components/dashboard/kpis/section-kpis";
 import KpiGrid from "@/components/kpis/kpi-grid";
 import RecentsTools from "@/components/tools/table-recent-tools";
-import { getRecentToolsForTable, getTools } from "@/services/tools.service";
+import { getRecentToolsForTable, getAllTools } from "@/services/tools.service";
 import { getAnalytics } from "@/services/analytics.service";
 import { getDepartments } from "@/services/departments.service";
+import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  description: "Overview of your organization's internal tools and expenses",
+};
 
 export default async function Home() {
   const [analytics, tools, departments, recentTools] = await Promise.all([
     getAnalytics(),
-    getTools(),
+    getAllTools(),
     getDepartments(),
     getRecentToolsForTable(),
   ]);
@@ -17,11 +23,6 @@ export default async function Home() {
   const activeToolsCount = tools.filter(
     (tool) => tool.status === "active",
   ).length;
-
-  console.log("Analytics:", analytics);
-  console.log("Tools:", tools);
-  console.log("Departments:", departments);
-  console.log("Recent Tools:", recentTools);
 
   const kpis = [
     {
@@ -56,8 +57,6 @@ export default async function Home() {
     },
   ] as const;
 
-  console.log("KPIs:", kpis);
-
   return (
     <div className="flex flex-col items-center justify-center gap-6">
       <HeaderPage
@@ -68,7 +67,7 @@ export default async function Home() {
       <KpiGrid kpis={kpis} />
 
       <section className="w-full max-w-7xl px-0 py-2">
-        <RecentsTools tools={tools} />
+        <RecentsTools tools={recentTools} />
       </section>
     </div>
   );
