@@ -15,7 +15,8 @@ import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { EmptyState } from "@/components/empty-state";
+import { formatCurrency } from "@/utils/formatCurrency";
 type Props = {
   data: AnalyticsDashboardData;
 };
@@ -36,37 +37,48 @@ export function InsightsSection({ data }: Props) {
         </CardHeader>
 
         <CardContent className="grid gap-3 md:grid-cols-2">
-          <InsightCard
-            icon={<CircleDollarSign className="h-4 w-4" />}
-            title="Savings opportunity"
-            description={`${data.potentialSavings.toLocaleString()} € could be optimized from unused tools.`}
-            badge={`${data.unusedTools.length} unused`}
-            variant="pink"
-          />
+          {data.tools.length > 0 ? (
+            <>
+              <InsightCard
+                icon={<CircleDollarSign className="h-4 w-4" />}
+                title="Savings opportunity"
+                description={`${formatCurrency(data.potentialSavings)} could be optimized from unused tools.`}
+                badge={`${data.unusedTools.length} unused`}
+                variant="pink"
+              />
 
-          <InsightCard
-            icon={<AlertTriangle className="h-4 w-4" />}
-            title="Expiring subscriptions"
-            description={`${data.expiringTools.length} tools require renewal attention.`}
-            badge="Review"
-            variant="orange"
-          />
+              <InsightCard
+                icon={<AlertTriangle className="h-4 w-4" />}
+                title="Expiring subscriptions"
+                description={`${data.expiringTools.length} tools require renewal attention.`}
+                badge="Review"
+                variant="orange"
+              />
 
-          <InsightCard
-            icon={<Wrench className="h-4 w-4" />}
-            title="Low adoption risk"
-            description={`${data.leastUsedTools.length} tools have weaker adoption and should be reviewed.`}
-            badge="Usage"
-            variant="blue"
-          />
+              <InsightCard
+                icon={<Wrench className="h-4 w-4" />}
+                title="Low adoption risk"
+                description={`${data.leastUsedTools.length} tools have weaker adoption and should be reviewed.`}
+                badge="Usage"
+                variant="blue"
+              />
 
-          <InsightCard
-            icon={<BarChart3 className="h-4 w-4" />}
-            title="High cost / low usage"
-            description={`${lowAdoptionExpensiveTools.length} expensive tools have less than 10 active users.`}
-            badge="ROI"
-            variant="green"
-          />
+              <InsightCard
+                icon={<BarChart3 className="h-4 w-4" />}
+                title="High cost / low usage"
+                description={`${lowAdoptionExpensiveTools.length} expensive tools have less than 10 active users.`}
+                badge="ROI"
+                variant="green"
+              />
+            </>
+          ) : (
+            <div className="md:col-span-2">
+              <EmptyState
+                title="No insights available"
+                description="Try changing the selected department."
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
