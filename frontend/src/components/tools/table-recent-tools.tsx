@@ -12,16 +12,16 @@ import { CustomBadge } from "@/components/ui/custom-badge";
 
 import { CustomImage } from "@/components/custom-image";
 
-import type { ToolForTable } from "@/types/tool";
+import type { ToolForRecentTable } from "@/types/tool";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { gradients } from "@/lib/gradients";
+import { formatDate } from "@/utils/formatDate";
 
 type Props = {
-  tools: ToolForTable[];
+  tools: ToolForRecentTable[];
 };
 
 const TableRecentTools = ({ tools }: Props) => {
-  console.log("tools in array: ", tools);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
