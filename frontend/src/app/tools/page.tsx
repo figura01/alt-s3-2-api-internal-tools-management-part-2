@@ -6,15 +6,31 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Metadata } from "next";
-
+import { EmptyState } from "@/components/empty-state";
+import { StatusFilter } from "@/components/tools/status-filter";
+import { DepartmentFilter } from "@/components/tools/department-filter";
+import { ResetFiltersButton } from "@/components/tools/reset-filters-button";
+import { ActiveFilters } from "@/components/tools/active-filters";
 export const metadata: Metadata = {
   title: "Tools Management",
   description: "Manage your organization's internal tools and subscriptions",
 };
 
-const ToolsPage = async () => {
-  const data = await getAllTools();
-  console.log("Tools data for table:", data);
+type Props = {
+  searchParams: Promise<{
+    q?: string;
+    status?: string;
+    department?: string;
+  }>;
+};
+
+const ToolsPage = async ({ searchParams }: Props) => {
+  const { q, status, department } = await searchParams;
+  const data = await getAllTools({
+    query: q,
+    status,
+    department,
+  });
 
   return (
     <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
@@ -22,21 +38,47 @@ const ToolsPage = async () => {
         title="Tools"
         subtitle="Manage your tools and subscriptions"
       />
+      {q && (
+        <div className="flex flex-row items-center justify-start">
+          <p className="text-muted-foreground">
+            Search results for{" "}
+            <span className="font-medium text-foreground">“{q}”</span>
+          </p>
+          <Button asChild variant="outline" size="sm" className="ml-2">
+            <Link href="/tools">Clear search</Link>
+          </Button>
+        </div>
+      )}
 
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>
             <h1 className="text-2xl font-bold">Tools List</h1>
           </CardTitle>
-          <Button
-            size="sm"
-            className="gradient-green text-white hover:bg-blue-400 transition"
-          >
-            <Link href="/tools/create">Add New Tool</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <StatusFilter />
+            <DepartmentFilter />
+            <ResetFiltersButton />
+            <Button
+              size="sm"
+              className="gradient-green text-white hover:bg-blue-400 transition"
+            >
+              <Link href="/tools/create">Add New Tool</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <DataTable data={data} columns={columns} />
+          {data.length > 0 ? (
+            <>
+              <ActiveFilters />
+              <DataTable data={data} columns={columns} />
+            </>
+          ) : (
+            <EmptyState
+              title="No tools found"
+              description="Try another search term or clear the search."
+            />
+          )}
         </CardContent>
       </Card>
     </div>
