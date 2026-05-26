@@ -2,7 +2,6 @@
 
 "use client";
 
-import header from "@/components/header";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 
