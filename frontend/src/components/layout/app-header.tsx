@@ -3,9 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Bell,
-  Menu,
-  Search,
   Settings,
   BarChart3,
   LayoutDashboard,
@@ -15,18 +12,12 @@ import {
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetTitle,
-} from "@/components/ui/sheet";
+
 import Logo from "./logo";
 import Navbar from "./navbar";
-import Searchbar from "./searchbar";
+import { Searchbar } from "@/components/layout/searchbar";
 import NotificationButton from "./notification-button";
 import MobileMenu from "./mobile-menu";
 import {
