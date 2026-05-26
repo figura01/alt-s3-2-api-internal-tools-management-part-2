@@ -12,12 +12,50 @@ import type { CreateToolValues, UpdateToolValues } from "@/schemas/tool.schema";
 /*                                   GET ALL                                  */
 /* -------------------------------------------------------------------------- */
 
-export async function getAllTools(): Promise<Tool[]> {
+type GetAllToolsParams = {
+  query?: string;
+  status?: string;
+  department?: string;
+};
+
+export async function getAllTools({
+  query,
+  status,
+  department,
+}: GetAllToolsParams = {}): Promise<Tool[]> {
   const tools = await api<ApiJsonTool[]>("/tools", {
     cache: "no-store",
   });
 
-  return tools.map(normalizeTool);
+  const normalizedTools = tools.map(normalizeTool);
+
+  const search = query?.trim().toLowerCase();
+  const selectedStatus = status?.trim().toLowerCase();
+  const selectedDepartment = department?.trim().toLowerCase();
+
+  return normalizedTools.filter((tool) => {
+    const matchesSearch =
+      !search ||
+      tool.name.toLowerCase().includes(search) ||
+      tool.vendor.toLowerCase().includes(search) ||
+      tool.category.toLowerCase().includes(search) ||
+      tool.owner_department.toLowerCase().includes(search) ||
+      tool.department.toLowerCase().includes(search) ||
+      tool.status.toLowerCase().includes(search);
+
+    const matchesStatus =
+      !selectedStatus ||
+      selectedStatus === "all" ||
+      tool.status.toLowerCase() === selectedStatus;
+
+    const matchesDepartment =
+      !selectedDepartment ||
+      selectedDepartment === "all" ||
+      tool.owner_department.toLowerCase() === selectedDepartment ||
+      tool.department.toLowerCase() === selectedDepartment;
+
+    return matchesSearch && matchesStatus && matchesDepartment;
+  });
 }
 
 /* -------------------------------------------------------------------------- */
