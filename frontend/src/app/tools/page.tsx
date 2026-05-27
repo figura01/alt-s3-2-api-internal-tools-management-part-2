@@ -22,17 +22,20 @@ type Props = {
     status?: string;
     department?: string;
     page?: string;
+    pageSize?: string;
   }>;
 };
 
 const ToolsPage = async ({ searchParams }: Props) => {
-  const { q, status, department, page } = await searchParams;
+  const { q, status, department, page, pageSize } = await searchParams;
+
   const data = await getAllTools({
     query: q,
     status,
     department,
   });
   const initialPage = Math.max(Number(page ?? 1), 1);
+  const initialPageSize = Number(pageSize ?? 10);
   return (
     <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
       <HeaderPage
@@ -76,6 +79,7 @@ const ToolsPage = async ({ searchParams }: Props) => {
                 data={data}
                 columns={columns}
                 initialPage={initialPage}
+                initialPageSize={initialPageSize}
               />
             </>
           ) : (
