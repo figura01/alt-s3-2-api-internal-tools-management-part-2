@@ -31,13 +31,23 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  initialPage?: number;
 }
+
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  initialPage,
 }: DataTableProps<TData, TValue>) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [sorting, setSorting] = useState<SortingState>([]);
+  const page = initialPage ?? 1;
+
   const table = useReactTable({
     data,
     columns,
@@ -50,10 +60,19 @@ export function DataTable<TData, TValue>({
     },
     initialState: {
       pagination: {
+        pageIndex: page - 1,
         pageSize: 10,
       },
     },
   });
+
+  function updatePage(pageIndex: number) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    params.set("page", String(pageIndex + 1));
+
+    router.push(`${pathname}?${params.toString()}`);
+  }
 
   return (
     <>
@@ -140,7 +159,10 @@ export function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage();
+              updatePage(table.getState().pagination.pageIndex - 1);
+            }}
             disabled={!table.getCanPreviousPage()}
           >
             Previous
@@ -149,7 +171,10 @@ export function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage();
+              updatePage(table.getState().pagination.pageIndex + 1);
+            }}
             disabled={!table.getCanNextPage()}
           >
             Next

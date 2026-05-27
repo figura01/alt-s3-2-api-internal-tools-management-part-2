@@ -21,17 +21,18 @@ type Props = {
     q?: string;
     status?: string;
     department?: string;
+    page?: string;
   }>;
 };
 
 const ToolsPage = async ({ searchParams }: Props) => {
-  const { q, status, department } = await searchParams;
+  const { q, status, department, page } = await searchParams;
   const data = await getAllTools({
     query: q,
     status,
     department,
   });
-
+  const initialPage = Math.max(Number(page ?? 1), 1);
   return (
     <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
       <HeaderPage
@@ -71,7 +72,11 @@ const ToolsPage = async ({ searchParams }: Props) => {
           {data.length > 0 ? (
             <>
               <ActiveFilters />
-              <DataTable data={data} columns={columns} />
+              <DataTable
+                data={data}
+                columns={columns}
+                initialPage={initialPage}
+              />
             </>
           ) : (
             <EmptyState
