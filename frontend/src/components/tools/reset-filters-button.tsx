@@ -1,31 +1,32 @@
+// src/components/tools/reset-filters-button.tsx
+
 "use client";
 
 import { X } from "lucide-react";
 
-import { useRouter, useSearchParams } from "next/navigation";
-
 import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/store/store";
 
 export function ResetFiltersButton() {
-  const router = useRouter();
+  const q = useAppStore((state) => state.q);
+  const status = useAppStore((state) => state.status);
+  const department = useAppStore((state) => state.department);
+  const resetFilters = useAppStore((state) => state.resetFilters);
 
-  const searchParams = useSearchParams();
-
-  const hasFilters =
-    searchParams.get("q") ||
-    searchParams.get("status") ||
-    searchParams.get("department");
-
-  function handleReset() {
-    router.push("/tools");
-  }
+  const hasFilters = q || status !== "all" || department !== "all";
 
   if (!hasFilters) {
     return null;
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleReset} className="h-9">
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      onClick={resetFilters}
+      className="h-9"
+    >
       <X className="mr-2 h-4 w-4" />
       Reset
     </Button>
