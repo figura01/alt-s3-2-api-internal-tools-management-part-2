@@ -1,15 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
-  ColumnDef,
+  type ColumnDef,
+  type PaginationState,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
-  PaginationState,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import { useEffect } from "react";
+
+import { useAppStore } from "@/store/store";
 
 import {
   Table,
@@ -33,57 +37,73 @@ import {
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  initialPage?: number;
-  initialPageSize?: number;
 };
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  initialPage = 1,
-  initialPageSize = 10,
 }: DataTableProps<TData, TValue>) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const page = useAppStore((state) => state.page);
+  const pageSize = useAppStore((state) => state.pageSize);
+  const sort = useAppStore((state) => state.sort);
+  const order = useAppStore((state) => state.order);
 
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: Math.max(initialPage - 1, 0),
-    pageSize: initialPageSize,
-  });
+  const setPage = useAppStore((state) => state.setPage);
+  const setPageSize = useAppStore((state) => state.setPageSize);
+  const setSortingStore = useAppStore((state) => state.setSorting);
 
-  useEffect(() => {
-    setPagination({
-      pageIndex: Math.max(initialPage - 1, 0),
-      pageSize: initialPageSize,
-    });
-  }, [initialPage, initialPageSize]);
-  const updateUrlPagination = (pageIndex: number, pageSize: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    params.set("page", String(pageIndex + 1));
-    params.set("pageSize", String(pageSize));
-
-    // router.push(`${pathname}?${params.toString()}`);
-    window.history.pushState(null, "", `${pathname}?${params.toString()}`);
+  const pagination = {
+    pageIndex: page - 1,
+    pageSize,
   };
+
+  const sorting = sort
+    ? [
+        {
+          id: sort,
+          desc: order === "desc",
+        },
+      ]
+    : [];
 
   const table = useReactTable({
     data,
     columns,
     state: {
       pagination,
+      sorting,
     },
     onPaginationChange: (updater) => {
       const next =
         typeof updater === "function" ? updater(pagination) : updater;
 
-      setPagination(next);
-      updateUrlPagination(next.pageIndex, next.pageSize);
+      setPage(next.pageIndex + 1);
+      setPageSize(next.pageSize);
+    },
+    onSortingChange: (updater) => {
+      const next = typeof updater === "function" ? updater(sorting) : updater;
+
+      const firstSort = next[0];
+
+      if (!firstSort) {
+        setSortingStore(null);
+        return;
+      }
+
+      setSortingStore(firstSort.id, firstSort.desc ? "desc" : "asc");
     },
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
+
+  useEffect(() => {
+    const pageCount = table.getPageCount();
+
+    if (pageCount > 0 && page > pageCount) {
+      setPage(1);
+    }
+  }, [data.length, page, setPage, table]);
 
   return (
     <div className="space-y-4">
@@ -134,21 +154,14 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Rows per page</span>
 
           <Select
-            value={String(pagination.pageSize)}
+            value={String(pageSize)}
             onValueChange={(value) => {
-              const nextPageSize = Number(value);
-
-              setPagination({
-                pageIndex: 0,
-                pageSize: nextPageSize,
-              });
-
-              updateUrlPagination(0, nextPageSize);
+              setPageSize(Number(value));
             }}
           >
             <SelectTrigger className="h-8 w-20">
