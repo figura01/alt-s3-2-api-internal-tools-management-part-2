@@ -2,8 +2,6 @@
 
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-
 import {
   Select,
   SelectContent,
@@ -11,6 +9,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+import { useAppStore } from "@/store/store";
 
 const departments = [
   "Engineering",
@@ -21,27 +21,12 @@ const departments = [
 ];
 
 export function DepartmentFilter() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const department = useAppStore((state) => state.department);
 
-  const currentDepartment = searchParams.get("department") ?? "all";
-
-  function handleChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (value === "all") {
-      params.delete("department");
-    } else {
-      params.set("department", value.toLowerCase());
-    }
-
-    params.delete("page");
-
-    router.push(`/tools?${params.toString()}`);
-  }
+  const setDepartment = useAppStore((state) => state.setDepartment);
 
   return (
-    <Select value={currentDepartment} onValueChange={handleChange}>
+    <Select value={department} onValueChange={setDepartment}>
       <SelectTrigger className="h-9 w-44">
         <SelectValue placeholder="Department" />
       </SelectTrigger>
