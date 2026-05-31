@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { AppStoreSyncProvider } from "@/components/providers/app-store-sync-provider";
 
 export const metadata: Metadata = {
   title: {
@@ -42,10 +43,12 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <QueryProvider>
-              <AppHeader />
               <TooltipProvider>
-                <main className="flex-1 w-full px-10">{children}</main>
-                <Toaster richColors position="top-right" />
+                <AppStoreSyncProvider>
+                  <AppHeader />
+                  <main className="flex-1 w-full px-10">{children}</main>
+                  <Toaster richColors position="top-right" />
+                </AppStoreSyncProvider>
               </TooltipProvider>
             </QueryProvider>
           </ThemeProvider>
