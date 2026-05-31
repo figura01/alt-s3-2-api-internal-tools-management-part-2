@@ -1,5 +1,5 @@
 import HeaderPage from "@/components/header-page";
-import { DataTable } from "@/components/data-table/data-table";
+import { ToolsTable } from "@/components/tools/tools-table";
 import { columns } from "@/app/tools/column";
 import { getAllTools } from "@/services/tools.service";
 import { Button } from "@/components/ui/button";
@@ -11,48 +11,23 @@ import { StatusFilter } from "@/components/tools/status-filter";
 import { DepartmentFilter } from "@/components/tools/department-filter";
 import { ResetFiltersButton } from "@/components/tools/reset-filters-button";
 import { ActiveFilters } from "@/components/tools/active-filters";
+import { SearchResultLabel } from "@/components/tools/search-result-label";
+
 export const metadata: Metadata = {
   title: "Tools Management",
   description: "Manage your organization's internal tools and subscriptions",
 };
 
-type Props = {
-  searchParams: Promise<{
-    q?: string;
-    status?: string;
-    department?: string;
-    page?: string;
-    pageSize?: string;
-  }>;
-};
+const ToolsPage = async () => {
+  const data = await getAllTools();
 
-const ToolsPage = async ({ searchParams }: Props) => {
-  const { q, status, department, page, pageSize } = await searchParams;
-
-  const data = await getAllTools({
-    query: q,
-    status,
-    department,
-  });
-  const initialPage = Math.max(Number(page ?? 1), 1);
-  const initialPageSize = Number(pageSize ?? 10);
   return (
     <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
       <HeaderPage
         title="Tools"
         subtitle="Manage your tools and subscriptions"
       />
-      {q && (
-        <div className="flex flex-row items-center justify-start">
-          <p className="text-muted-foreground">
-            Search results for{" "}
-            <span className="font-medium text-foreground">“{q}”</span>
-          </p>
-          <Button asChild variant="outline" size="sm" className="ml-2">
-            <Link href="/tools">Clear search</Link>
-          </Button>
-        </div>
-      )}
+      <SearchResultLabel />
 
       <Card className="w-full">
         <CardHeader className="flex flex-row items-center justify-between">
@@ -75,12 +50,7 @@ const ToolsPage = async ({ searchParams }: Props) => {
           {data.length > 0 ? (
             <>
               <ActiveFilters />
-              <DataTable
-                data={data}
-                columns={columns}
-                initialPage={initialPage}
-                initialPageSize={initialPageSize}
-              />
+              <ToolsTable data={data} columns={columns} />
             </>
           ) : (
             <EmptyState
