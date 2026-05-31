@@ -1,53 +1,66 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-
-const FILTERS = ["q", "status", "department"] as const;
+import { useAppStore } from "@/store/store";
 
 export function ActiveFilters() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const q = useAppStore((state) => state.q);
+  const status = useAppStore((state) => state.status);
+  const department = useAppStore((state) => state.department);
 
-  const activeFilters = FILTERS.map((key) => ({
-    key,
-    value: searchParams.get(key),
-  })).filter((filter) => filter.value);
+  const setQuery = useAppStore((state) => state.setQuery);
+  const setStatus = useAppStore((state) => state.setStatus);
+  const setDepartment = useAppStore((state) => state.setDepartment);
 
-  function removeFilter(key: string) {
-    const params = new URLSearchParams(searchParams.toString());
+  const filters = [
+    q
+      ? {
+          label: "Search",
+          value: q,
+          onRemove: () => setQuery(""),
+        }
+      : null,
 
-    params.delete(key);
-    params.delete("page");
+    status !== "all"
+      ? {
+          label: "Status",
+          value: status,
+          onRemove: () => setStatus("all"),
+        }
+      : null,
 
-    const query = params.toString();
+    department !== "all"
+      ? {
+          label: "Department",
+          value: department,
+          onRemove: () => setDepartment("all"),
+        }
+      : null,
+  ].filter(Boolean);
 
-    router.push(query ? `/tools?${query}` : "/tools");
-  }
-
-  if (activeFilters.length === 0) {
+  if (filters.length === 0) {
     return null;
   }
 
   return (
-    <div className="flex flex-wrap items-center mb-1 gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <span className="text-sm text-muted-foreground">Active filters:</span>
 
-      {activeFilters.map((filter) => (
+      {filters.map((filter) => (
         <Badge
-          key={filter.key}
+          key={`${filter!.label}-${filter!.value}`}
           variant="secondary"
           className="gap-1 rounded-full px-3 py-1"
         >
           <span>
-            {filter.key}: {filter.value}
+            {filter!.label}: {filter!.value}
           </span>
 
           <button
             type="button"
-            onClick={() => removeFilter(filter.key)}
+            onClick={filter!.onRemove}
             className="ml-1 rounded-full hover:text-destructive"
           >
             <X className="h-3 w-3" />
