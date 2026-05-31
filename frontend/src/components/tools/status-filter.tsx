@@ -2,8 +2,6 @@
 
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-
 import {
   Select,
   SelectContent,
@@ -11,29 +9,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppStore } from "@/store/store";
 
 export function StatusFilter() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const currentStatus = searchParams.get("status") ?? "all";
-
-  function handleChange(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    if (value === "all") {
-      params.delete("status");
-    } else {
-      params.set("status", value);
-    }
-
-    params.delete("page");
-
-    router.push(`/tools?${params.toString()}`);
-  }
+  const status = useAppStore((state) => state.status);
+  const setStatus = useAppStore((state) => state.setStatus);
 
   return (
-    <Select value={currentStatus} onValueChange={handleChange}>
+    <Select value={status} onValueChange={setStatus}>
       <SelectTrigger className="h-9 w-36">
         <SelectValue placeholder="Status" />
       </SelectTrigger>
