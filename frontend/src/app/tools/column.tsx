@@ -25,22 +25,6 @@ import Link from "next/link";
 import type { Tool } from "@/types/tool";
 import { formatDate } from "@/utils/formatDate";
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-// export type T = {
-//   id: string;
-//   icon_url: string;
-//   name: string;
-//   description: string;
-//   category: string;
-//   status: "active" | "expired" | "unused";
-//   user_count: number;
-//   monthly_cost: number;
-//   last_update: Date;
-//   department: string;
-//   quick_actions: string[];
-// };
-
 import { gradients } from "@/lib/gradients";
 
 const renderBadge = (status: string) => {
@@ -81,7 +65,17 @@ export const columns: ColumnDef<Tool>[] = [
   },
   {
     accessorKey: "name",
-    header: "Name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "description",
@@ -89,11 +83,31 @@ export const columns: ColumnDef<Tool>[] = [
   },
   {
     accessorKey: "category",
-    header: "Category",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Category
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const value = row.original.status;
       return renderBadge(value);
@@ -101,15 +115,45 @@ export const columns: ColumnDef<Tool>[] = [
   },
   {
     accessorKey: "active_users_count",
-    header: "User Count",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          User Count
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "monthly_cost",
-    header: "Monthly Cost",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Monthly Cost
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
   },
   {
     accessorKey: "last_update",
-    header: "Last Update",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Last Update
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const value = row.original.last_update;
       return value ? formatDate(String(value)) : "N/A";
