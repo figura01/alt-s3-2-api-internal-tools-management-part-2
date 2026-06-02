@@ -9,10 +9,12 @@ export function ActiveFilters() {
   const q = useAppStore((state) => state.q);
   const status = useAppStore((state) => state.status);
   const department = useAppStore((state) => state.department);
+  const category = useAppStore((state) => state.category);
 
   const setQuery = useAppStore((state) => state.setQuery);
   const setStatus = useAppStore((state) => state.setStatus);
   const setDepartment = useAppStore((state) => state.setDepartment);
+  const setCategory = useAppStore((state) => state.setCategory);
 
   const filters = [
     q
@@ -36,6 +38,14 @@ export function ActiveFilters() {
           label: "Department",
           value: department,
           onRemove: () => setDepartment("all"),
+        }
+      : null,
+
+    category !== "all"
+      ? {
+          label: "Category",
+          value: category,
+          onRemove: () => setCategory("all"),
         }
       : null,
   ].filter(Boolean);

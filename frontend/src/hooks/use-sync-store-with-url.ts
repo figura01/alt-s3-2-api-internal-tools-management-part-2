@@ -12,6 +12,7 @@ export function useSyncStoreWithUrl() {
 
   const q = useAppStore((state) => state.q);
   const status = useAppStore((state) => state.status);
+  const category = useAppStore((state) => state.category);
   const department = useAppStore((state) => state.department);
   const page = useAppStore((state) => state.page);
   const pageSize = useAppStore((state) => state.pageSize);
@@ -35,6 +36,7 @@ export function useSyncStoreWithUrl() {
     if (q) params.set("q", q);
     if (status !== "all") params.set("status", status);
     if (department !== "all") params.set("department", department);
+    if (category !== "all") params.set("category", category);
     if (page > 1) params.set("page", String(page));
     if (pageSize !== 10) params.set("pageSize", String(pageSize));
 
@@ -48,5 +50,5 @@ export function useSyncStoreWithUrl() {
       : pathname;
 
     window.history.pushState(null, "", url);
-  }, [pathname, q, status, department, page, pageSize, sort, order]);
+  }, [pathname, q, status, department, category, page, pageSize, sort, order]);
 }

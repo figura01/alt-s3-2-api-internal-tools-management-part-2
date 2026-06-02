@@ -13,10 +13,12 @@ type AppStore = {
   pageSize: number;
   sort: string | null;
   order: SortOrder;
+  category: string;
 
   setQuery: (q: string) => void;
   setStatus: (status: string) => void;
   setDepartment: (department: string) => void;
+  setCategory: (category: string) => void;
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
   setSorting: (sort: string | null, order?: SortOrder) => void;
@@ -32,12 +34,22 @@ export const useAppStore = create<AppStore>()(
       q: "",
       status: "all",
       department: "all",
+      category: "all",
 
       page: 1,
       pageSize: 10,
 
       sort: null,
       order: "asc",
+      setCategory: (category) =>
+        set(
+          {
+            category: category.toLowerCase(),
+            page: 1,
+          },
+          false,
+          "setCategory",
+        ),
 
       setQuery: (q) =>
         set(
@@ -105,6 +117,7 @@ export const useAppStore = create<AppStore>()(
             q: "",
             status: "all",
             department: "all",
+            category: "all",
 
             page: 1,
 
@@ -123,6 +136,8 @@ export const useAppStore = create<AppStore>()(
             status: params.get("status")?.toLowerCase() ?? "all",
 
             department: params.get("department")?.toLowerCase() ?? "all",
+
+            category: params.get("category")?.toLowerCase() ?? "all",
 
             page: Number(params.get("page") ?? 1),
 

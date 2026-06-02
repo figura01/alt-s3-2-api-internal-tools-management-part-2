@@ -17,6 +17,7 @@ export function ToolsTable({ data, columns }: Props) {
   const q = useAppStore((state) => state.q);
   const status = useAppStore((state) => state.status);
   const department = useAppStore((state) => state.department);
+  const category = useAppStore((state) => state.category);
 
   const filteredData = useMemo(() => {
     const search = q.trim().toLowerCase();
@@ -38,9 +39,14 @@ export function ToolsTable({ data, columns }: Props) {
         tool.owner_department.toLowerCase() === department ||
         tool.department.toLowerCase() === department;
 
-      return matchesSearch && matchesStatus && matchesDepartment;
+      const matchesCategory =
+        category === "all" || tool.category.toLowerCase() === category;
+
+      return (
+        matchesSearch && matchesStatus && matchesDepartment && matchesCategory
+      );
     });
-  }, [data, q, status, department]);
+  }, [data, q, status, department, category]);
 
   return <DataTable data={filteredData} columns={columns} />;
 }
