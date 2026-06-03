@@ -12,8 +12,10 @@ export function ResetFiltersButton() {
   const status = useAppStore((state) => state.status);
   const department = useAppStore((state) => state.department);
   const resetFilters = useAppStore((state) => state.resetFilters);
+  const category = useAppStore((state) => state.category);
 
-  const hasFilters = q || status !== "all" || department !== "all";
+  const hasFilters =
+    q || status !== "all" || department !== "all" || category !== "all";
 
   if (!hasFilters) {
     return null;
