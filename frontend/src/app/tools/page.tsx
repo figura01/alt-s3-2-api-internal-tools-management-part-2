@@ -13,6 +13,10 @@ import { ResetFiltersButton } from "@/components/tools/reset-filters-button";
 import { ActiveFilters } from "@/components/tools/active-filters";
 import { SearchResultLabel } from "@/components/tools/search-result-label";
 import { CategoryFilter } from "@/components/tools/category-filter";
+import {
+  getUniqueToolCategories,
+  getUniqueToolDepartments,
+} from "@/utils/tools-filters";
 
 export const metadata: Metadata = {
   title: "Tools Management",
@@ -21,13 +25,8 @@ export const metadata: Metadata = {
 
 const ToolsPage = async () => {
   const data = await getAllTools();
-  const categories = Array.from(
-    new Set(
-      data
-        .map((tool) => tool.category?.trim())
-        .filter((category): category is string => Boolean(category)),
-    ),
-  ).sort();
+  const departments = getUniqueToolDepartments(data);
+  const categories = getUniqueToolCategories(data);
 
   return (
     <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
@@ -44,7 +43,7 @@ const ToolsPage = async () => {
           </CardTitle>
           <div className="flex items-center gap-2">
             <StatusFilter />
-            <DepartmentFilter />
+            <DepartmentFilter departments={departments} />
             <CategoryFilter categories={categories} />
             <ResetFiltersButton />
             <Button

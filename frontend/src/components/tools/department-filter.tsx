@@ -12,15 +12,11 @@ import {
 
 import { useAppStore } from "@/store/store";
 
-const departments = [
-  "Engineering",
-  "Design",
-  "Marketing",
-  "Operations",
-  "Communication",
-];
+type DepartmentFilterProps = {
+  departments: string[];
+};
 
-export function DepartmentFilter() {
+export function DepartmentFilter({ departments }: DepartmentFilterProps) {
   const department = useAppStore((state) => state.department);
 
   const setDepartment = useAppStore((state) => state.setDepartment);
