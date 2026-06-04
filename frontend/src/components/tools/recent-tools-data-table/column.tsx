@@ -3,7 +3,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { SortableHeader } from "@/components/data-table/sortable-header";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -20,28 +20,40 @@ export type T = {
 export const columns: ColumnDef<T>[] = [
   {
     accessorKey: "status",
-    header: "Status",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Status" />;
+    },
   },
   {
     accessorKey: "tool",
-    header: "Tool",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Tool" />;
+    },
   },
   {
     accessorKey: "department",
-    header: "Department",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Department" />;
+    },
   },
   {
     accessorKey: "users",
-    header: "Users",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Users" />;
+    },
   },
   {
     accessorKey: "monthlyCost",
-    header: "Monthly Cost",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Monthly Cost" />;
+    },
   },
 
   {
     accessorKey: "amount",
-    header: "Amount",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Amount" />;
+    },
   },
   {
     accessorKey: "actions",

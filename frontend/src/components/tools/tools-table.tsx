@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data-table/data-table";
-import { useAppStore } from "@/store/store";
+import { useToolFilters } from "@/store/store";
 
 import type { Tool } from "@/types/tool";
 
@@ -14,10 +14,7 @@ type Props = {
 };
 
 export function ToolsTable({ data, columns }: Props) {
-  const q = useAppStore((state) => state.q);
-  const status = useAppStore((state) => state.status);
-  const department = useAppStore((state) => state.department);
-  const category = useAppStore((state) => state.category);
+  const { q, status, department, category } = useToolFilters();
 
   const filteredData = useMemo(() => {
     const search = q.trim().toLowerCase();

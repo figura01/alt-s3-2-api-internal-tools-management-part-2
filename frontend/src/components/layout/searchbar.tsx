@@ -3,7 +3,6 @@
 "use client";
 
 import { Search, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/store/store";

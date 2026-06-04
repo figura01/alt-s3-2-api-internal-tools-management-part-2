@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreVertical } from "lucide-react";
 
-const DropDownMenu = () => {
+export const DropDownMenu = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

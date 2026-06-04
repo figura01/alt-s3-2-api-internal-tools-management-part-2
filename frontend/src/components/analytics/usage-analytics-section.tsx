@@ -11,17 +11,11 @@ import {
 } from "recharts";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
-
 import { Badge } from "@/components/ui/badge";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { CustomProgress } from "@/components/ui/custom-progress";
-
 import { EmptyState } from "@/components/empty-state";
-
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
-
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 type Props = {
@@ -30,9 +24,7 @@ type Props = {
 
 export function UsageAnalyticsSection({ data }: Props) {
   const isMobile = useIsMobile();
-
   const maxUsers = Math.max(...data.mostUsedTools.map((tool) => tool.users), 1);
-
   const departmentActivity = data.departmentCosts.map((department) => ({
     name: department.name,
     activity: Math.round((department.value / data.totalMonthlySpend) * 100),

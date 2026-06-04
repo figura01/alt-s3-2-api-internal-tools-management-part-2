@@ -3,13 +3,10 @@
 import { X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { useAppStore } from "@/store/store";
+import { useAppStore, useToolFilters } from "@/store/store";
 
 export function ActiveFilters() {
-  const q = useAppStore((state) => state.q);
-  const status = useAppStore((state) => state.status);
-  const department = useAppStore((state) => state.department);
-  const category = useAppStore((state) => state.category);
+  const { q, status, department, category } = useToolFilters();
 
   const setQuery = useAppStore((state) => state.setQuery);
   const setStatus = useAppStore((state) => state.setStatus);

@@ -132,19 +132,12 @@ export const useAppStore = create<AppStore>()(
         set(
           {
             q: params.get("q") ?? "",
-
             status: params.get("status")?.toLowerCase() ?? "all",
-
             department: params.get("department")?.toLowerCase() ?? "all",
-
             category: params.get("category")?.toLowerCase() ?? "all",
-
             page: Number(params.get("page") ?? 1),
-
             pageSize: Number(params.get("pageSize") ?? 10),
-
             sort: params.get("sort"),
-
             order: params.get("order") === "desc" ? "desc" : "asc",
           },
           false,
@@ -157,3 +150,23 @@ export const useAppStore = create<AppStore>()(
     },
   ),
 );
+
+export const useToolFilters = () =>
+  useAppStore((state) => ({
+    q: state.q,
+    status: state.status,
+    department: state.department,
+    category: state.category,
+  }));
+
+export const useToolPagination = () =>
+  useAppStore((state) => ({
+    page: state.page,
+    pageSize: state.pageSize,
+  }));
+
+export const useToolSorting = () =>
+  useAppStore((state) => ({
+    sort: state.sort,
+    order: state.order,
+  }));

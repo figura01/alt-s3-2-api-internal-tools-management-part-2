@@ -3,21 +3,22 @@
 import { useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 
-import { useAppStore } from "@/store/store";
+import {
+  useAppStore,
+  useToolFilters,
+  useToolPagination,
+  useToolSorting,
+} from "@/store/store";
 
 export function useSyncStoreWithUrl() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const hasHydrated = useRef(false);
 
-  const q = useAppStore((state) => state.q);
-  const status = useAppStore((state) => state.status);
-  const category = useAppStore((state) => state.category);
-  const department = useAppStore((state) => state.department);
-  const page = useAppStore((state) => state.page);
-  const pageSize = useAppStore((state) => state.pageSize);
-  const sort = useAppStore((state) => state.sort);
-  const order = useAppStore((state) => state.order);
+  const { q, status, department, category } = useToolFilters();
+  const { page, pageSize } = useToolPagination();
+  const { sort, order } = useToolSorting();
+
   const hydrateFromUrl = useAppStore((state) => state.hydrateFromUrl);
 
   useEffect(() => {

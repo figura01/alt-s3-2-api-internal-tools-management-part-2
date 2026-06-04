@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SortableHeader } from "@/components/data-table/sortable-header";
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -66,15 +67,7 @@ export const columns: ColumnDef<Tool>[] = [
   {
     accessorKey: "name",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+      return <SortableHeader column={column} label="Name" />;
     },
   },
   {
@@ -84,84 +77,38 @@ export const columns: ColumnDef<Tool>[] = [
   {
     accessorKey: "category",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Category
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+      return <SortableHeader column={column} label="Category" />;
     },
   },
   {
     accessorKey: "status",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const value = row.original.status;
-      return renderBadge(value);
+      return <SortableHeader column={column} label="Status" />;
     },
   },
   {
     accessorKey: "active_users_count",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          User Count
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+      return <SortableHeader column={column} label="User Count" />;
     },
   },
   {
     accessorKey: "monthly_cost",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Monthly Cost
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
+      return <SortableHeader column={column} label="Monthly Cost" />;
     },
   },
   {
     accessorKey: "last_update",
     header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Last Update
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-    cell: ({ row }) => {
-      const value = row.original.last_update;
-      return value ? formatDate(String(value)) : "N/A";
+      return <SortableHeader column={column} label="Last Update" />;
     },
   },
   {
     accessorKey: "department",
-    header: "Department",
+    header: ({ column }) => {
+      return <SortableHeader column={column} label="Department" />;
+    },
   },
 
   {
