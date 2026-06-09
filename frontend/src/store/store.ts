@@ -151,22 +151,30 @@ export const useAppStore = create<AppStore>()(
   ),
 );
 
-export const useToolFilters = () =>
-  useAppStore((state) => ({
-    q: state.q,
-    status: state.status,
-    department: state.department,
-    category: state.category,
-  }));
+export const useToolFilters = () => {
+  const q = useAppStore((state) => state.q);
+  const status = useAppStore((state) => state.status);
+  const department = useAppStore((state) => state.department);
+  const category = useAppStore((state) => state.category);
 
-export const useToolPagination = () =>
-  useAppStore((state) => ({
-    page: state.page,
-    pageSize: state.pageSize,
-  }));
+  return {
+    q,
+    status,
+    department,
+    category,
+  };
+};
 
-export const useToolSorting = () =>
-  useAppStore((state) => ({
-    sort: state.sort,
-    order: state.order,
-  }));
+export const useToolPagination = () => {
+  const page = useAppStore((state) => state.page);
+  const pageSize = useAppStore((state) => state.pageSize);
+
+  return { page, pageSize };
+};
+
+export const useToolSorting = () => {
+  const sort = useAppStore((state) => state.sort);
+  const order = useAppStore((state) => state.order);
+
+  return { sort, order };
+};

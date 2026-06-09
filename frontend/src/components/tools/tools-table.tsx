@@ -7,15 +7,16 @@ import { DataTable } from "@/components/data-table/data-table";
 import { useToolFilters } from "@/store/store";
 
 import type { Tool } from "@/types/tool";
+import { useTools } from "@/hooks/use-tools";
 
 type Props = {
-  data: Tool[];
+  initialData: Tool[];
   columns: ColumnDef<Tool, unknown>[];
 };
 
-export function ToolsTable({ data, columns }: Props) {
+export function ToolsTable({ initialData, columns }: Props) {
   const { q, status, department, category } = useToolFilters();
-
+  const { data = [] } = useTools(initialData);
   const filteredData = useMemo(() => {
     const search = q.trim().toLowerCase();
 

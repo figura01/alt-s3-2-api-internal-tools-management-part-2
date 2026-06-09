@@ -58,7 +58,7 @@ const ToolsPage = async () => {
           {data.length > 0 ? (
             <>
               <ActiveFilters />
-              <ToolsTable data={data} columns={columns} />
+              <ToolsTable initialData={data} columns={columns} />
             </>
           ) : (
             <EmptyState

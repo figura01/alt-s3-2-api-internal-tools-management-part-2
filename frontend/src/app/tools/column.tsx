@@ -27,6 +27,7 @@ import type { Tool } from "@/types/tool";
 import { formatDate } from "@/utils/formatDate";
 
 import { gradients } from "@/lib/gradients";
+import { DeleteToolAction } from "@/components/tools/delete-tool-action";
 
 const renderBadge = (status: string) => {
   console.log("Rendering badge for status: ", status); // Debug log
@@ -150,11 +151,7 @@ export const columns: ColumnDef<Tool>[] = [
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
-
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
-              <Trash2 className="mr-2 h-4 w-4" />
-              <span>Delete</span>
-            </DropdownMenuItem>
+            <DeleteToolAction toolId={Number(tool.id)} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
