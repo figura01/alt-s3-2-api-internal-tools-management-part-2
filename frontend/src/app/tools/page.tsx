@@ -17,6 +17,8 @@ import {
   getUniqueToolCategories,
   getUniqueToolDepartments,
 } from "@/utils/tools-filters";
+import { canCreateTool } from "@/lib/permissions";
+import { AddToolButton } from "@/components/tools/add-tool-button";
 
 export const metadata: Metadata = {
   title: "Tools Management",
@@ -46,12 +48,7 @@ const ToolsPage = async () => {
             <DepartmentFilter departments={departments} />
             <CategoryFilter categories={categories} />
             <ResetFiltersButton />
-            <Button
-              size="sm"
-              className="gradient-green text-white hover:bg-blue-400 transition"
-            >
-              <Link href="/tools/create">Add New Tool</Link>
-            </Button>
+            <AddToolButton />
           </div>
         </CardHeader>
         <CardContent>

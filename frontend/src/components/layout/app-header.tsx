@@ -1,35 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-  Settings,
-  BarChart3,
-  LayoutDashboard,
-  Wrench,
-  ChevronDown,
-} from "lucide-react";
+
+import { Settings, BarChart3, LayoutDashboard, Wrench } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 import Logo from "./logo";
 import Navbar from "./navbar";
 import { Searchbar } from "@/components/layout/searchbar";
 import NotificationButton from "./notification-button";
 import MobileMenu from "./mobile-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
+
+import { UserMenu } from "@/components/auth/user-menu";
 
 const navItems = [
   {
@@ -55,8 +39,6 @@ const navItems = [
 ];
 
 export default function AppHeader() {
-  const pathname = usePathname();
-
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -86,7 +68,7 @@ export default function AppHeader() {
           >
             <Settings className="text-gray-500 h-4 w-4 hover:text-red-500" />
           </Button>
-          <DropdownMenu>
+          {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2">
                 <Button
@@ -125,7 +107,8 @@ export default function AppHeader() {
                 <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
+          <UserMenu />
 
           <MobileMenu navItems={navItems} />
         </div>

@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
+import type { AuthUser } from "@/types/auth";
+import { userRole } from "@/types/auth";
 
 type SortOrder = "asc" | "desc";
 
@@ -14,7 +16,10 @@ type AppStore = {
   sort: string | null;
   order: SortOrder;
   category: string;
+  currentUser: AuthUser | null;
 
+  setCurrentUser: (user: AuthUser | null) => void;
+  logout: () => void;
   setQuery: (q: string) => void;
   setStatus: (status: string) => void;
   setDepartment: (department: string) => void;
@@ -31,6 +36,26 @@ type AppStore = {
 export const useAppStore = create<AppStore>()(
   devtools(
     (set) => ({
+      /* -------------------------------------------------------------------------- */
+      /*                                   AUTH                                     */
+      /* -------------------------------------------------------------------------- */
+
+      currentUser: {
+        id: "1",
+        email: "admin@example.com",
+        name: "Admin User",
+        role: userRole.ADMIN,
+      },
+
+      setCurrentUser: (user) =>
+        set({ currentUser: user }, false, "setCurrentUser"),
+
+      logout: () => set({ currentUser: null }, false, "logout"),
+
+      /* -------------------------------------------------------------------------- */
+      /*                                   TOOLS                                    */
+      /* -------------------------------------------------------------------------- */
+
       q: "",
       status: "all",
       department: "all",
@@ -178,3 +203,5 @@ export const useToolSorting = () => {
 
   return { sort, order };
 };
+
+export const useCurrentUser = () => useAppStore((state) => state.currentUser);
