@@ -1,7 +1,7 @@
 export type ToolStatus = "active" | "unused" | "expiring";
 
 export type Tool = {
-  id?: number;
+  id?: string;
   name: string;
   description: string;
   vendor: string;
@@ -39,7 +39,7 @@ export type ApiJsonTool = Partial<{
 }>;
 
 export type ToolForTable = {
-  id?: number;
+  id?: string;
   name: string;
   icon_url: string;
   owner_department: string;

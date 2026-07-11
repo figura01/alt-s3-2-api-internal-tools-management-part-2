@@ -1,8 +1,8 @@
 export type OutputUser = {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  department_id: number;
+  department_id: string;
   role: string;
   active: boolean;
   joined_at: string;
@@ -11,6 +11,6 @@ export type OutputUser = {
 export type InputUser = {
   name: string;
   email: string;
-  department_id: number;
+  department_id: string;
   role: string;
 };

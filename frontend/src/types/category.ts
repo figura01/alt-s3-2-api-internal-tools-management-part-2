@@ -1,7 +1,7 @@
 import type { Tool } from "./tool";
 
 export type Category = {
-  id: number;
+  id: string;
   name: string;
   description: string | null;
   color_hex: string | null;

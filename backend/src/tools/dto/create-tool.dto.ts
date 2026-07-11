@@ -46,10 +46,10 @@ export class CreateToolDto {
   website_url?: string;
 
   @ApiProperty({
-    example: 2,
+    example: '2',
   })
-  @IsInt()
-  category_id!: number;
+  @IsString()
+  category_id!: string;
 
   @ApiProperty({
     example: 8.0,

@@ -7,171 +7,228 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Category {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique @db.VarChar(50)
+model User {
+  id           String @id @default(cuid())
+  name         String @db.VarChar(100)
+  email        String @unique @db.VarChar(150)
+  passwordHash String @map("password_hash") @db.VarChar(255)
+
+  departmentId String     @map("department_id")
+  department   Department @relation(fields: [departmentId], references: [id])
+
+  role   UserRole   @default(employee)
+  status UserStatus @default(active)
+
+  hireDate  DateTime? @map("hire_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  usageLogs         UsageLog[]
+  accessRequests    AccessRequest[] @relation("RequestedBy")
+  processedRequests AccessRequest[] @relation("ProcessedBy")
+
+  userToolAccesses    UserToolAccess[] @relation("ToolAccessUser")
+  grantedToolAccesses UserToolAccess[] @relation("ToolAccessGrantedBy")
+  revokedToolAccesses UserToolAccess[] @relation("ToolAccessRevokedBy")
+
+  @@index([departmentId], map: "idx_users_department")
+  @@index([status], map: "idx_users_status")
+  @@map("users")
+}
+
+model Department {
+  id          String  @id @default(cuid())
+  name        String  @unique @db.VarChar(100)
   description String?
-  color_hex   String?   @default("#6366f1") @db.VarChar(7)
-  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
-  tools       Tool[]
+  slug        String  @unique @db.VarChar(100)
+
+  users User[]
+  tools Tool[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@map("departments")
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String  @unique @db.VarChar(100)
+  slug        String  @unique @db.VarChar(100)
+  description String?
+
+  tools Tool[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
 
   @@map("categories")
 }
 
 model Tool {
-  id               Int                @id @default(autoincrement())
-  name             String             @db.VarChar(100)
-  description      String?
-  vendor           String?            @db.VarChar(100)
-  websiteUrl       String?            @map("website_url") @db.VarChar(255)
-  categoryId       Int                @map("category_id")
-  monthlyCost      Decimal            @map("monthly_cost") @db.Decimal(10, 2)
-  activeUsersCount Int                @default(0) @map("active_users_count")
-  ownerDepartment  department_type    @map("owner_department")
-  status           tool_status_type?  @default(active)
-  createdAt        DateTime?          @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt        DateTime?          @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
-  access_requests  access_requests[]
-  cost_tracking    cost_tracking[]
-  category         Category           @relation(fields: [categoryId], references: [id], onUpdate: NoAction)
-  usage_logs       usage_logs[]
-  user_tool_access user_tool_access[]
+  id          String  @id @default(cuid())
+  name        String  @db.VarChar(100)
+  description String?
+  vendor      String? @db.VarChar(100)
 
-  @@index([activeUsersCount(sort: Desc)], map: "idx_tools_active_users")
+  categoryId String   @map("category_id")
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  ownerDepartmentId String     @map("owner_department_id")
+  ownerDepartment   Department @relation(fields: [ownerDepartmentId], references: [id])
+
+  monthlyCost       Decimal  @default(0) @map("monthly_cost") @db.Decimal(10, 2)
+  previousMonthCost Decimal? @map("previous_month_cost") @db.Decimal(10, 2)
+  activeUsersCount  Int      @default(0) @map("active_users_count")
+
+  websiteUrl String? @map("website_url")
+  iconUrl    String? @map("icon_url")
+
+  status ToolStatus @default(active)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  usageLogs        UsageLog[]
+  accessRequests   AccessRequest[]
+  userToolAccesses UserToolAccess[]
+  costTrackings    CostTracking[]
+
   @@index([categoryId], map: "idx_tools_category")
-  @@index([monthlyCost(sort: Desc)], map: "idx_tools_cost_desc")
-  @@index([ownerDepartment], map: "idx_tools_department")
+  @@index([ownerDepartmentId], map: "idx_tools_owner_department")
   @@index([status], map: "idx_tools_status")
   @@map("tools")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model access_requests {
-  id                                        Int                  @id @default(autoincrement())
-  user_id                                   Int
-  tool_id                                   Int
-  business_justification                    String
-  status                                    request_status_type? @default(pending)
-  requested_at                              DateTime?            @default(now()) @db.Timestamp(6)
-  processed_at                              DateTime?            @db.Timestamp(6)
-  processed_by                              Int?
-  processing_notes                          String?
-  users_access_requests_processed_byTousers users?               @relation("access_requests_processed_byTousers", fields: [processed_by], references: [id], onUpdate: NoAction)
-  tools                                     Tool                 @relation(fields: [tool_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_access_requests_user_idTousers      users                @relation("access_requests_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model AccessRequest {
+  id String @id @default(cuid())
 
-  @@index([requested_at], map: "idx_requests_date")
-  @@index([status], map: "idx_requests_status")
-  @@index([user_id], map: "idx_requests_user")
+  userId String @map("user_id")
+  user   User   @relation("RequestedBy", fields: [userId], references: [id])
+
+  toolId String @map("tool_id")
+  tool   Tool   @relation(fields: [toolId], references: [id])
+
+  processedById String? @map("processed_by_id")
+  processedBy   User?   @relation("ProcessedBy", fields: [processedById], references: [id])
+
+  status        RequestStatus @default(pending)
+  reviewComment String?       @map("review_comment") @db.Text
+  reason        String?       @db.Text
+
+  requestedAt DateTime  @default(now()) @map("requested_at") @db.Timestamp(6)
+  processedAt DateTime? @map("processed_at") @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@index([userId], map: "idx_access_requests_user")
+  @@index([toolId], map: "idx_access_requests_tool")
+  @@index([processedById], map: "idx_access_requests_processed_by")
+  @@index([status], map: "idx_access_requests_status")
+  @@map("access_requests")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model cost_tracking {
-  id                 Int       @id @default(autoincrement())
-  tool_id            Int
-  month_year         DateTime  @db.Date
-  total_monthly_cost Decimal   @db.Decimal(10, 2)
-  active_users_count Int       @default(0)
-  created_at         DateTime? @default(now()) @db.Timestamp(6)
-  tools              Tool      @relation(fields: [tool_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model CostTracking {
+  id String @id @default(cuid())
 
-  @@unique([tool_id, month_year])
-  @@index([month_year, tool_id], map: "idx_cost_month_tool")
+  toolId String @map("tool_id")
+  tool   Tool   @relation(fields: [toolId], references: [id])
+
+  month DateTime @db.Date
+
+  cost        Decimal @db.Decimal(10, 2)
+  userCount   Int     @default(0) @map("user_count")
+  costPerUser Decimal @default(0) @map("cost_per_user") @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@unique([toolId, month], map: "unique_tool_month_cost")
+  @@index([toolId], map: "idx_cost_tracking_tool")
+  @@index([month], map: "idx_cost_tracking_month")
+  @@map("cost_tracking")
 }
 
-model usage_logs {
-  id            Int       @id @default(autoincrement())
-  user_id       Int
-  tool_id       Int
-  session_date  DateTime  @db.Date
-  usage_minutes Int?      @default(0)
-  actions_count Int?      @default(0)
-  created_at    DateTime? @default(now()) @db.Timestamp(6)
-  tools         Tool      @relation(fields: [tool_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users         users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model UsageLog {
+  id String @id @default(cuid())
 
-  @@index([session_date, tool_id], map: "idx_usage_date_tool")
-  @@index([user_id, session_date], map: "idx_usage_user_date")
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  toolId String @map("tool_id")
+  tool   Tool   @relation(fields: [toolId], references: [id])
+
+  usageDate    DateTime @map("usage_date") @db.Date
+  sessionCount Int      @default(0) @map("session_count")
+  totalMinutes Int      @default(0) @map("total_minutes")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@index([userId], map: "idx_usage_logs_user")
+  @@index([toolId], map: "idx_usage_logs_tool")
+  @@index([usageDate], map: "idx_usage_logs_date")
+  @@map("usage_logs")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model user_tool_access {
-  id                                       Int                 @id @default(autoincrement())
-  user_id                                  Int
-  tool_id                                  Int
-  granted_at                               DateTime?           @default(now()) @db.Timestamp(6)
-  granted_by                               Int
-  revoked_at                               DateTime?           @db.Timestamp(6)
-  revoked_by                               Int?
-  status                                   access_status_type? @default(active)
-  users_user_tool_access_granted_byTousers users               @relation("user_tool_access_granted_byTousers", fields: [granted_by], references: [id], onUpdate: NoAction)
-  users_user_tool_access_revoked_byTousers users?              @relation("user_tool_access_revoked_byTousers", fields: [revoked_by], references: [id], onUpdate: NoAction)
-  tools                                    Tool                @relation(fields: [tool_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users_user_tool_access_user_idTousers    users               @relation("user_tool_access_user_idTousers", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+model UserToolAccess {
+  id String @id @default(cuid())
 
-  @@unique([user_id, tool_id, status])
-  @@index([granted_at], map: "idx_access_granted_date")
-  @@index([status], map: "idx_access_status")
-  @@index([tool_id], map: "idx_access_tool")
-  @@index([user_id], map: "idx_access_user")
+  userId String @map("user_id")
+  user   User   @relation("ToolAccessUser", fields: [userId], references: [id])
+
+  toolId String @map("tool_id")
+  tool   Tool   @relation(fields: [toolId], references: [id])
+
+  status AccessStatus @default(active)
+
+  grantedById String? @map("granted_by_id")
+  grantedBy   User?   @relation("ToolAccessGrantedBy", fields: [grantedById], references: [id])
+
+  revokedById String? @map("revoked_by_id")
+  revokedBy   User?   @relation("ToolAccessRevokedBy", fields: [revokedById], references: [id])
+
+  grantedAt DateTime  @default(now()) @map("granted_at") @db.Timestamp(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamp(6)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  @@unique([userId, toolId], map: "unique_user_tool_access")
+  @@index([userId], map: "idx_user_tool_access_user")
+  @@index([toolId], map: "idx_user_tool_access_tool")
+  @@index([status], map: "idx_user_tool_access_status")
+  @@map("user_tool_access")
 }
 
-model users {
-  id                                                  Int                @id @default(autoincrement())
-  name                                                String             @db.VarChar(100)
-  email                                               String             @unique @db.VarChar(150)
-  department                                          department_type
-  role                                                user_role_type?    @default(employee)
-  status                                              user_status_type?  @default(active)
-  password_hash                                       String             @db.VarChar(255)
-  hire_date                                           DateTime?          @db.Date
-  created_at                                          DateTime?          @default(now()) @db.Timestamp(6)
-  updated_at                                          DateTime?          @default(now()) @db.Timestamp(6)
-  access_requests_access_requests_processed_byTousers access_requests[]  @relation("access_requests_processed_byTousers")
-  access_requests_access_requests_user_idTousers      access_requests[]  @relation("access_requests_user_idTousers")
-  usage_logs                                          usage_logs[]
-  user_tool_access_user_tool_access_granted_byTousers user_tool_access[] @relation("user_tool_access_granted_byTousers")
-  user_tool_access_user_tool_access_revoked_byTousers user_tool_access[] @relation("user_tool_access_revoked_byTousers")
-  user_tool_access_user_tool_access_user_idTousers    user_tool_access[] @relation("user_tool_access_user_idTousers")
-
-  @@index([department], map: "idx_users_department")
-  @@index([status], map: "idx_users_status")
-}
-
-enum access_status_type {
+enum AccessStatus {
   active
   revoked
 }
 
-enum department_type {
-  Engineering
-  Sales
-  Marketing
-  HR
-  Finance
-  Operations
-  Design
-}
-
-enum request_status_type {
+enum RequestStatus {
   pending
   approved
   rejected
 }
 
-enum tool_status_type {
-  active
-  deprecated
-  trial
-}
-
-enum user_role_type {
+enum UserRole {
   employee
   manager
   admin
 }
 
-enum user_status_type {
+enum UserStatus {
   active
   inactive
+}
+
+enum ToolStatus {
+  active
+  unused
+  expiring
 }

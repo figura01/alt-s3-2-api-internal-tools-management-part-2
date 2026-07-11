@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { AuthUser } from "@/types/auth";
-import { userRole } from "@/types/auth";
+// import { userRole } from "@/types/auth";
 
 type SortOrder = "asc" | "desc";
 
@@ -40,12 +40,7 @@ export const useAppStore = create<AppStore>()(
       /*                                   AUTH                                     */
       /* -------------------------------------------------------------------------- */
 
-      currentUser: {
-        id: "1",
-        email: "admin@example.com",
-        name: "Admin User",
-        role: userRole.ADMIN,
-      },
+      currentUser: null,
 
       setCurrentUser: (user) =>
         set({ currentUser: user }, false, "setCurrentUser"),

@@ -9,8 +9,21 @@ import * as argon2 from 'argon2';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import type { JwtPayload } from './interfaces/jwt-payload.interface';
+
+const userSelect = {
+  id: true,
+  name: true,
+  email: true,
+  department: true,
+  role: true,
+  status: true,
+  hire_date: true,
+  created_at: true,
+  updated_at: true,
+};
 
 @Injectable()
 export class AuthService {
@@ -39,13 +52,18 @@ export class AuthService {
         password_hash: passwordHash,
         department: registerDto.department,
       },
+      select: userSelect,
     });
 
-    const { password_hash, ...safeUser } = user;
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
 
     return {
-      message: 'User registered successfully',
-      user: safeUser,
+      access_token: accessToken,
+      user,
     };
   }
 
@@ -69,19 +87,35 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    const safeUser = await this.prisma.users.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: userSelect,
+    });
 
-    const accessToken = await this.jwtService.signAsync(payload);
+    if (!safeUser) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
 
-    const { password_hash, ...safeUser } = user;
+    const accessToken = await this.jwtService.signAsync({
+      sub: safeUser.id,
+      email: safeUser.email,
+      role: safeUser.role,
+    });
 
     return {
       access_token: accessToken,
       user: safeUser,
     };
+  }
+
+  async me(payload: JwtPayload) {
+    return this.prisma.users.findUnique({
+      where: {
+        id: payload.sub,
+      },
+      select: userSelect,
+    });
   }
 }

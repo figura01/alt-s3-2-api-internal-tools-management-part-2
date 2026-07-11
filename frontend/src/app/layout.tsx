@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   description: String(process.env.NEXT_PUBLIC_APP_DESCRIPTION),
   metadataBase: new URL(String(process.env.NEXT_PUBLIC_BASE_URL)),
 };
+import { AuthBootstrap } from "@/components/auth/auth-bootstrap";
 
 export default function RootLayout({
   children,
@@ -45,6 +46,7 @@ export default function RootLayout({
             <QueryProvider>
               <TooltipProvider>
                 <AppStoreSyncProvider>
+                  <AuthBootstrap />
                   <AppHeader />
                   <main className="flex-1 w-full px-10">{children}</main>
                   <Toaster richColors position="top-right" />

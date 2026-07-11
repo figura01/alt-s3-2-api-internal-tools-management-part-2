@@ -9,8 +9,8 @@ export type ProficiencyLevel =
   | "expert";
 
 export type UserTool = {
-  user_id: number;
-  tool_id: number;
+  user_id: string;
+  tool_id: string;
   usage_frequency: UsageFrequency;
   last_used: string;
   proficiency_level: ProficiencyLevel;
