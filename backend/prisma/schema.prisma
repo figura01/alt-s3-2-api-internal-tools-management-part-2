@@ -8,31 +8,71 @@ datasource db {
 }
 
 model User {
-  id           String @id @default(cuid())
-  name         String @db.VarChar(100)
-  email        String @unique @db.VarChar(150)
-  passwordHash String @map("password_hash") @db.VarChar(255)
+  id String @id @default(cuid())
+
+  // ---------------------------------------------------------------------------
+  // Identity
+  // ---------------------------------------------------------------------------
+
+  name      String  @db.VarChar(100)
+  email     String  @unique @db.VarChar(150)
+  avatarUrl String? @map("avatar_url") @db.Text
+
+  // ---------------------------------------------------------------------------
+  // Authentication
+  // ---------------------------------------------------------------------------
+
+  passwordHash    String    @map("password_hash") @db.VarChar(255)
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  lastLoginAt     DateTime? @map("last_login_at") @db.Timestamp(6)
+
+  // ---------------------------------------------------------------------------
+  // Employment
+  // ---------------------------------------------------------------------------
+
+  jobTitle String? @map("job_title") @db.VarChar(100)
 
   departmentId String     @map("department_id")
   department   Department @relation(fields: [departmentId], references: [id])
 
-  role   UserRole   @default(employee)
+  hireDate DateTime? @map("hire_date") @db.Date
+
+  // ---------------------------------------------------------------------------
+  // Permissions
+  // ---------------------------------------------------------------------------
+
+  role UserRole @default(employee)
+
   status UserStatus @default(active)
 
-  hireDate  DateTime? @map("hire_date") @db.Date
-  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamp(6)
+  // ---------------------------------------------------------------------------
+  // Audit
+  // ---------------------------------------------------------------------------
 
-  usageLogs         UsageLog[]
-  accessRequests    AccessRequest[] @relation("RequestedBy")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
+
+  // ---------------------------------------------------------------------------
+  // Relations
+  // ---------------------------------------------------------------------------
+
+  usageLogs UsageLog[]
+
+  accessRequests AccessRequest[] @relation("RequestedBy")
+
   processedRequests AccessRequest[] @relation("ProcessedBy")
 
-  userToolAccesses    UserToolAccess[] @relation("ToolAccessUser")
+  userToolAccesses UserToolAccess[] @relation("ToolAccessUser")
+
   grantedToolAccesses UserToolAccess[] @relation("ToolAccessGrantedBy")
+
   revokedToolAccesses UserToolAccess[] @relation("ToolAccessRevokedBy")
 
   @@index([departmentId], map: "idx_users_department")
   @@index([status], map: "idx_users_status")
+  @@index([email], map: "idx_users_email")
+  @@index([role], map: "idx_users_role")
   @@map("users")
 }
 
