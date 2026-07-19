@@ -4,6 +4,7 @@ import { seedCategories } from './seeds/category.seed';
 import { seedDepartments } from './seeds/department.seed';
 import { seedTools } from './seeds/tool.seed';
 import { seedUsers } from './seeds/user.seed';
+import { seedUserToolAccesses } from './seeds/user-tool-access.seed';
 
 const prisma = new PrismaClient();
 
@@ -14,11 +15,17 @@ async function main() {
   const categoryMap = await seedCategories(prisma);
   const userMap = await seedUsers(prisma, departmentMap);
   const toolMap = await seedTools(prisma, departmentMap, categoryMap);
+  const userToolAccessCount = await seedUserToolAccesses(
+    prisma,
+    userMap,
+    toolMap,
+  );
 
   console.log(`ℹ️ Departments available: ${departmentMap.size}`);
   console.log(`ℹ️ Categories available: ${categoryMap.size}`);
   console.log(`ℹ️ Users available: ${userMap.size}`);
   console.log(`ℹ️ Tools available: ${toolMap.size}`);
+  console.log(`ℹ️ User tool accesses available: ${userToolAccessCount}`);
 
   console.log('✅ Database seed completed.');
 }
