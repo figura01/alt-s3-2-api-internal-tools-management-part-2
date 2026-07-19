@@ -107,7 +107,7 @@ model Category {
 
 model Tool {
   id          String  @id @default(cuid())
-  name        String  @db.VarChar(100)
+  name        String  @unique @db.VarChar(100)
   description String?
   vendor      String? @db.VarChar(100)
 
