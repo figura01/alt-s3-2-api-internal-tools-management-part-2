@@ -195,22 +195,19 @@ model CostTracking {
 model UsageLog {
   id String @id @default(cuid())
 
-  userId String @map("user_id")
-  user   User   @relation(fields: [userId], references: [id])
+  userId String
+  toolId String
 
-  toolId String @map("tool_id")
-  tool   Tool   @relation(fields: [toolId], references: [id])
+  usageDate    DateTime
+  sessionCount Int      @default(0)
+  totalMinutes Int      @default(0)
 
-  usageDate    DateTime @map("usage_date") @db.Date
-  sessionCount Int      @default(0) @map("session_count")
-  totalMinutes Int      @default(0) @map("total_minutes")
+  user User @relation(fields: [userId], references: [id])
+  tool Tool @relation(fields: [toolId], references: [id])
 
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
-
-  @@index([userId], map: "idx_usage_logs_user")
-  @@index([toolId], map: "idx_usage_logs_tool")
-  @@index([usageDate], map: "idx_usage_logs_date")
+  @@unique([userId, toolId, usageDate])
+  @@index([usageDate])
+  @@index([toolId])
   @@map("usage_logs")
 }
 
