@@ -4,6 +4,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import type { Tool } from "@/types/tool";
+
 import {
   createToolSchema,
   updateToolSchema,
@@ -30,6 +31,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { useCategories } from "@/hooks/use-categories";
+import { useDepartments } from "@/hooks/use-departments";
+
+/* -------------------------------------------------------------------------- */
+/*                                    TYPES                                   */
+/* -------------------------------------------------------------------------- */
+
 type CreateProps = {
   mode: "create";
   initialData?: never;
@@ -46,8 +54,41 @@ type Props = (CreateProps | EditProps) & {
   isSubmitting?: boolean;
 };
 
+/* -------------------------------------------------------------------------- */
+/*                               STATUS OPTIONS                               */
+/* -------------------------------------------------------------------------- */
+
+const statusOptions = [
+  {
+    value: "ACTIVE",
+    label: "Active",
+  },
+  {
+    value: "INACTIVE",
+    label: "Inactive",
+  },
+  {
+    value: "EXPIRING",
+    label: "Expiring",
+  },
+  {
+    value: "UNUSED",
+    label: "Unused",
+  },
+] as const;
+
+/* -------------------------------------------------------------------------- */
+/*                                    FORM                                    */
+/* -------------------------------------------------------------------------- */
+
 export function ToolForm(props: Props) {
   const isEditMode = props.mode === "edit";
+
+  const { data: categories = [], isLoading: isLoadingCategories } =
+    useCategories();
+
+  const { data: departments = [], isLoading: isLoadingDepartments } =
+    useDepartments();
 
   const form = useForm<
     CreateToolInput | UpdateToolInput,
@@ -55,43 +96,66 @@ export function ToolForm(props: Props) {
     CreateToolValues | UpdateToolValues
   >({
     resolver: zodResolver(isEditMode ? updateToolSchema : createToolSchema),
-    defaultValues: {
-      ...(isEditMode
-        ? {
-            id: props.initialData.id,
-            name: props.initialData.name,
-            description: props.initialData.description,
-            vendor: props.initialData.vendor,
-            category: props.initialData.category,
-            owner_department: props.initialData.owner_department,
-            department: props.initialData.department,
-            status: props.initialData.status,
-            website_url: props.initialData.website_url,
-            icon_url: props.initialData.icon_url,
-            monthly_cost: props.initialData.monthly_cost,
-            previous_month_cost: props.initialData.previous_month_cost,
-            active_users_count: props.initialData.active_users_count,
-          }
-        : {
-            name: "",
-            description: "",
-            vendor: "",
-            category: "",
-            owner_department: "",
-            department: "",
-            status: "active",
-            website_url: "",
-            icon_url: "",
-            monthly_cost: 0,
-            previous_month_cost: 0,
-            active_users_count: 0,
-          }),
-    },
+
+    defaultValues: isEditMode
+      ? {
+          id: props.initialData.id,
+
+          name: props.initialData.name,
+
+          description: props.initialData.description ?? "",
+
+          vendor: props.initialData.vendor ?? "",
+
+          category: props.initialData.category,
+
+          owner_department: props.initialData.owner_department,
+
+          status: props.initialData.status,
+
+          website_url: props.initialData.website_url ?? "",
+
+          icon_url: props.initialData.icon_url ?? "",
+
+          monthly_cost: props.initialData.monthly_cost,
+
+          previous_month_cost: props.initialData.previous_month_cost,
+
+          active_users_count: props.initialData.active_users_count,
+        }
+      : {
+          name: "",
+
+          description: "",
+
+          vendor: "",
+
+          category: "",
+
+          owner_department: "",
+
+          status: "ACTIVE",
+
+          website_url: "",
+
+          icon_url: "",
+
+          monthly_cost: 0,
+
+          previous_month_cost: null,
+
+          active_users_count: 0,
+        },
   });
+
+  /* ------------------------------------------------------------------------ */
+  /*                                  SUBMIT                                  */
+  /* ------------------------------------------------------------------------ */
 
   async function handleSubmit(values: CreateToolValues | UpdateToolValues) {
     if (isEditMode) {
       await props.onSubmit(values as UpdateToolValues);
+
       return;
     }
 
@@ -105,17 +169,32 @@ export function ToolForm(props: Props) {
       noValidate
     >
       <FieldGroup className="grid gap-4 md:grid-cols-2">
+        {/* ------------------------------------------------------------------ */}
+        {/* NAME                                                               */}
+        {/* ------------------------------------------------------------------ */}
+
         <Controller
           name="name"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Tool name</FieldLabel>
-              <Input {...field} id={field.name} placeholder="Slack" />
+
+              <Input
+                {...field}
+                id={field.name}
+                value={field.value ?? ""}
+                placeholder="Slack"
+              />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* VENDOR                                                             */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="vendor"
@@ -123,15 +202,22 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Vendor</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
+                value={field.value ?? ""}
                 placeholder="Slack Technologies"
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* CATEGORY                                                           */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="category"
@@ -139,23 +225,79 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Category</FieldLabel>
-              <Input {...field} id={field.name} placeholder="Communication" />
+
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                disabled={isLoadingCategories}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      isLoadingCategories
+                        ? "Loading categories..."
+                        : "Select category"
+                    }
+                  />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* OWNER DEPARTMENT                                                   */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="owner_department"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor={field.name}>Owner department</FieldLabel>
-              <Input {...field} id={field.name} placeholder="Engineering" />
+              <FieldLabel>Owner department</FieldLabel>
+
+              <Select
+                value={field.value ?? ""}
+                onValueChange={field.onChange}
+                disabled={isLoadingDepartments}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      isLoadingDepartments
+                        ? "Loading departments..."
+                        : "Select department"
+                    }
+                  />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {departments.map((department) => (
+                    <SelectItem key={department.id} value={department.name}>
+                      {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* MONTHLY COST                                                       */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="monthly_cost"
@@ -163,18 +305,24 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Monthly cost</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
                 type="number"
                 min={0}
                 step="0.01"
-                value={String(field.value) ?? ""}
+                value={field.value == null ? "" : String(field.value)}
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* ACTIVE USERS                                                       */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="active_users_count"
@@ -182,56 +330,83 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Active users</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
                 type="number"
                 min={0}
-                value={String(field.value) ?? ""}
+                step={1}
+                value={field.value == null ? "" : String(field.value)}
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
 
-        <Controller
-          name="status"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Status</FieldLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="expiring">Expiring</SelectItem>
-                  <SelectItem value="unused">Unused</SelectItem>
-                </SelectContent>
-              </Select>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        {/* ------------------------------------------------------------------ */}
+        {/* STATUS - EDIT ONLY                                                 */}
+        {/* ------------------------------------------------------------------ */}
+
+        {isEditMode && (
+          <Controller
+            name="status"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel>Status</FieldLabel>
+
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {statusOptions.map((status) => (
+                      <SelectItem key={status.value} value={status.value}>
+                        {status.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        )}
       </FieldGroup>
 
       <FieldGroup>
+        {/* ------------------------------------------------------------------ */}
+        {/* WEBSITE URL                                                        */}
+        {/* ------------------------------------------------------------------ */}
+
         <Controller
           name="website_url"
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Website URL</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
+                value={field.value ?? ""}
                 placeholder="https://slack.com"
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* ICON URL                                                           */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="icon_url"
@@ -239,15 +414,22 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Icon URL</FieldLabel>
+
               <Input
                 {...field}
                 id={field.name}
+                value={field.value ?? ""}
                 placeholder="https://example.com/icon.png"
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
+
+        {/* ------------------------------------------------------------------ */}
+        {/* DESCRIPTION                                                        */}
+        {/* ------------------------------------------------------------------ */}
 
         <Controller
           name="description"
@@ -255,17 +437,24 @@ export function ToolForm(props: Props) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+
               <Textarea
                 {...field}
                 id={field.name}
+                value={field.value ?? ""}
                 placeholder="Describe the tool..."
                 className="min-h-28 resize-none"
               />
+
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
         />
       </FieldGroup>
+
+      {/* -------------------------------------------------------------------- */}
+      {/* SUBMIT                                                               */}
+      {/* -------------------------------------------------------------------- */}
 
       <div className="flex justify-end">
         <Button

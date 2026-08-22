@@ -10,6 +10,6 @@ export const departments = [
 
 export type Department = (typeof departments)[number];
 
-export const toolStatuses = ['active', 'deprecated', 'trial'] as const;
+export const toolStatuses = ['ACTIVE', 'DEPRECATED', 'TRIAL'] as const;
 
 export type ToolStatus = (typeof toolStatuses)[number];

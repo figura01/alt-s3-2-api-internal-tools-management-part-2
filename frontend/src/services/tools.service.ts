@@ -4,7 +4,13 @@ import { api } from "@/lib/api";
 
 import { mapToolToTable, normalizeTool } from "@/mappers/tool.mapper";
 
-import type { ApiJsonTool, Tool, ToolForTable } from "@/types/tool";
+import type {
+  ApiTool,
+  Tool,
+  ToolForTable,
+  ToolsApiResponse,
+  ToolsResponse,
+} from "@/types/tool";
 
 import type { CreateToolValues, UpdateToolValues } from "@/schemas/tool.schema";
 
@@ -12,58 +18,54 @@ import type { CreateToolValues, UpdateToolValues } from "@/schemas/tool.schema";
 /*                                   GET ALL                                  */
 /* -------------------------------------------------------------------------- */
 
-type GetAllToolsParams = {
+export type GetToolsParams = {
   query?: string;
   status?: string;
   department?: string;
+  category?: string;
 };
 
-export async function getAllTools({
-  query,
-  status,
-  department,
-}: GetAllToolsParams = {}): Promise<Tool[]> {
-  const tools = await api<ApiJsonTool[]>("/tools", {
+export async function getTools(
+  params: GetToolsParams = {},
+): Promise<ToolsResponse> {
+  const searchParams = new URLSearchParams();
+
+  if (params.query) {
+    searchParams.set("query", params.query);
+  }
+
+  if (params.status && params.status !== "all") {
+    searchParams.set("status", params.status);
+  }
+
+  if (params.department && params.department !== "all") {
+    searchParams.set("department", params.department);
+  }
+
+  if (params.category && params.category !== "all") {
+    searchParams.set("category", params.category);
+  }
+
+  const queryString = searchParams.toString();
+
+  const url = `/tools${queryString ? `?${queryString}` : ""}`;
+
+  const response = await api<ToolsApiResponse>(url, {
     cache: "no-store",
   });
 
-  const normalizedTools = tools.map(normalizeTool);
-
-  const search = query?.trim().toLowerCase();
-  const selectedStatus = status?.trim().toLowerCase();
-  const selectedDepartment = department?.trim().toLowerCase();
-
-  return normalizedTools.filter((tool) => {
-    const matchesSearch =
-      !search ||
-      tool.name.toLowerCase().includes(search) ||
-      tool.vendor.toLowerCase().includes(search) ||
-      tool.category.toLowerCase().includes(search) ||
-      tool.owner_department.toLowerCase().includes(search) ||
-      tool.department.toLowerCase().includes(search) ||
-      tool.status.toLowerCase().includes(search);
-
-    const matchesStatus =
-      !selectedStatus ||
-      selectedStatus === "all" ||
-      tool.status.toLowerCase() === selectedStatus;
-
-    const matchesDepartment =
-      !selectedDepartment ||
-      selectedDepartment === "all" ||
-      tool.owner_department.toLowerCase() === selectedDepartment ||
-      tool.department.toLowerCase() === selectedDepartment;
-
-    return matchesSearch && matchesStatus && matchesDepartment;
-  });
+  return {
+    ...response,
+    data: response.data.map(normalizeTool),
+  };
 }
 
 /* -------------------------------------------------------------------------- */
 /*                                GET BY ID                                   */
 /* -------------------------------------------------------------------------- */
 
-export async function getToolById(id: number): Promise<Tool> {
-  const tool = await api<ApiJsonTool>(`/tools/${id}`, {
+export async function getToolById(id: string): Promise<Tool> {
+  const tool = await api<ApiTool>(`/tools/${id}`, {
     cache: "no-store",
   });
 
@@ -75,14 +77,14 @@ export async function getToolById(id: number): Promise<Tool> {
 /* -------------------------------------------------------------------------- */
 
 export async function getRecentToolsForTable(): Promise<ToolForTable[]> {
-  const tools = await api<ApiJsonTool[]>(
-    "/tools?_sort=updated_at&_order=desc&_limit=8",
+  const response = await api<ToolsApiResponse>(
+    "/tools?sort_by=created_at&sort_order=desc&limit=8",
     {
       cache: "no-store",
     },
   );
 
-  return tools.map(normalizeTool).map(mapToolToTable);
+  return response.data.map(normalizeTool).map(mapToolToTable);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -90,18 +92,9 @@ export async function getRecentToolsForTable(): Promise<ToolForTable[]> {
 /* -------------------------------------------------------------------------- */
 
 export async function createTool(values: CreateToolValues): Promise<Tool> {
-  const now = new Date().toISOString();
-
-  const createdTool = await api<ApiJsonTool>("/tools", {
+  const createdTool = await api<ApiTool>("/tools", {
     method: "POST",
-
-    body: JSON.stringify({
-      ...values,
-
-      created_at: now,
-
-      updated_at: now,
-    }),
+    body: JSON.stringify(values),
   });
 
   return normalizeTool(createdTool);
@@ -114,14 +107,9 @@ export async function createTool(values: CreateToolValues): Promise<Tool> {
 export async function updateTool(values: UpdateToolValues): Promise<Tool> {
   const { id, ...payload } = values;
 
-  const updatedTool = await api<ApiJsonTool>(`/tools/${id}`, {
-    method: "PATCH",
-
-    body: JSON.stringify({
-      ...payload,
-
-      updated_at: new Date().toISOString(),
-    }),
+  const updatedTool = await api<ApiTool>(`/tools/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
   });
 
   return normalizeTool(updatedTool);
@@ -131,7 +119,7 @@ export async function updateTool(values: UpdateToolValues): Promise<Tool> {
 /*                                   DELETE                                   */
 /* -------------------------------------------------------------------------- */
 
-export async function deleteTool(id: number): Promise<void> {
+export async function deleteTool(id: string): Promise<void> {
   await api<void>(`/tools/${id}`, {
     method: "DELETE",
   });

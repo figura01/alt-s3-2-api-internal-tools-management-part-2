@@ -12,8 +12,10 @@ import {
 
 import { useAppStore } from "@/store/store";
 
+import type { Department } from "@/types/department";
+
 type DepartmentFilterProps = {
-  departments: string[];
+  departments: Department[];
 };
 
 export function DepartmentFilter({ departments }: DepartmentFilterProps) {
@@ -31,8 +33,8 @@ export function DepartmentFilter({ departments }: DepartmentFilterProps) {
         <SelectItem value="all">All departments</SelectItem>
 
         {departments.map((department) => (
-          <SelectItem key={department} value={department.toLowerCase()}>
-            {department}
+          <SelectItem key={department.id} value={department.name}>
+            {department.name}
           </SelectItem>
         ))}
       </SelectContent>

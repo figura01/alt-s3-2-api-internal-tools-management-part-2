@@ -25,7 +25,7 @@ export type DepartmentCostsResponse = {
 };
 
 export type ExpensiveToolItem = {
-  id: number;
+  id: string;
   name: string;
   monthly_cost: number;
   active_users_count: number;
@@ -62,7 +62,7 @@ export type ToolsByCategoryResponse = {
 };
 
 export type LowUsageToolItem = {
-  id: number;
+  id: string;
   name: string;
   monthly_cost: number;
   active_users_count: number;

@@ -13,7 +13,7 @@ export const toolsData = [
     previousMonthCost: 0,
     activeUsersCount: 0,
 
-    status: 'active',
+    status: 'ACTIVE',
 
     websiteUrl: 'https://figma.com',
     iconUrl: 'https://static.figma.com/app/icon/1/favicon.png',
@@ -30,7 +30,7 @@ export const toolsData = [
     previousMonthCost: 830,
     activeUsersCount: 81,
 
-    status: 'unused',
+    status: 'UNUSED',
 
     websiteUrl: 'https://github.com',
     iconUrl:
@@ -48,7 +48,7 @@ export const toolsData = [
     previousMonthCost: 861,
     activeUsersCount: 145,
 
-    status: 'unused',
+    status: 'UNUSED',
 
     websiteUrl: 'https://notion.com',
     iconUrl: 'https://www.notion.so/images/favicon.ico',
@@ -65,7 +65,7 @@ export const toolsData = [
     previousMonthCost: 797,
     activeUsersCount: 15,
 
-    status: 'expiring',
+    status: 'EXPIRING',
 
     websiteUrl: 'https://adobecreativecloud.com',
     iconUrl: 'https://www.adobe.com/content/dam/cc/icons/creative-cloud.svg',
@@ -82,7 +82,7 @@ export const toolsData = [
     previousMonthCost: 1249,
     activeUsersCount: 56,
 
-    status: 'active',
+    status: 'ACTIVE',
 
     websiteUrl: 'https://office365.com',
     iconUrl:

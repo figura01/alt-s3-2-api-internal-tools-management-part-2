@@ -1,123 +1,190 @@
-import type { Department, ToolStatus } from './tool.enums';
+// src/tools/types/tool.types.ts
 
-export type ToolWithCategory = {
-  id: number;
-  name: string;
-  description: string;
-  vendor: string;
-  websiteUrl: string | null;
-  monthlyCost: unknown;
-  ownerDepartment: Department;
-  status: ToolStatus;
-  activeUsersCount: number;
-  createdAt: Date;
-  updatedAt: Date;
+import type { Prisma, ToolStatus } from '@prisma/client';
 
-  category: {
-    id: number;
-    name: string;
-  };
-};
-
-export type ToolWithDetails = ToolWithCategory & {
-  usage_logs: {
-    id: number;
-    user_id: number;
-    tool_id: number;
-    session_date: Date;
-    usage_minutes: number | null;
-    actions_count: number | null;
-    created_at: Date | null;
-  }[];
-};
-
-export type AppliedFilters = {
-  department?: Department;
-  status?: ToolStatus;
-  min_cost?: number;
-  max_cost?: number;
-  category?: string;
-};
+// =========================
+// SORT
+// =========================
 
 export type SortField = 'name' | 'monthly_cost' | 'created_at';
 
 export type SortOrder = 'asc' | 'desc';
 
-export type ToolOrderBy = {
-  name?: SortOrder;
-  monthlyCost?: SortOrder;
-  createdAt?: SortOrder;
-};
+// On utilise directement les types Prisma
+// au lieu de maintenir notre propre copie.
+export type ToolWhere = Prisma.ToolWhereInput;
 
-export type ToolsListResponse = {
-  data: {
-    id: number;
-    name: string;
-    description: string;
-    vendor: string;
-    category: string;
-    monthly_cost: number;
-    owner_department: Department;
-    status: ToolStatus;
-    website_url: string | null;
-    active_users_count: number;
-    created_at: Date;
-  }[];
+export type ToolOrderBy = Prisma.ToolOrderByWithRelationInput;
+
+// =========================
+// FILTERS
+// =========================
+
+export interface AppliedFilters {
+  query?: string;
+  department?: string;
+  status?: ToolStatus;
+  min_cost?: number;
+  max_cost?: number;
+  category?: string;
+}
+
+// =========================
+// COMMON TOOL RESPONSE
+// =========================
+
+export interface ToolListItem {
+  id: string;
+
+  name: string;
+
+  description: string | null;
+
+  vendor: string | null;
+
+  category: string;
+
+  monthly_cost: number;
+
+  previous_month_cost: number | null;
+
+  owner_department: string;
+
+  status: ToolStatus;
+
+  website_url: string | null;
+
+  icon_url: string | null;
+
+  active_users_count: number;
+
+  created_at: Date;
+
+  updated_at: Date;
+}
+
+// =========================
+// LIST RESPONSE
+// =========================
+
+export interface ToolsListResponse {
+  data: ToolListItem[];
 
   total: number;
+
   filtered: number;
+
   page: number;
+
   limit: number;
 
   filters_applied: AppliedFilters;
-};
+}
 
-export type ToolDetailResponse = {
-  id: number;
+// =========================
+// CREATE RESPONSE
+// =========================
+
+export interface ToolCreateResponse {
+  id: string;
+
   name: string;
-  description: string;
-  vendor: string;
-  website_url: string | null;
+
+  description: string | null;
+
+  vendor: string | null;
+
   category: string;
+
   monthly_cost: number;
-  owner_department: Department;
+
+  owner_department: string;
+
   status: ToolStatus;
+
+  website_url: string | null;
+
+  icon_url: string | null;
+
   active_users_count: number;
-  total_monthly_cost: number;
+
   created_at: Date;
-  updated_at: Date;
+}
 
-  usage_metrics: {
-    last_30_days: {
-      total_sessions: number;
-      avg_session_minutes: number;
-    };
-  } | null;
-};
+// =========================
+// DETAIL RESPONSE
+// =========================
 
-export type ToolWhere = {
-  ownerDepartment?: Department;
-  status?: ToolStatus;
-  monthlyCost?: {
-    gte?: number;
-    lte?: number;
-  };
-  category?: {
-    name: string;
-  };
-};
+export interface ToolDetailResponse {
+  id: string;
 
-export type ToolCreateResponse = {
-  id: number;
   name: string;
-  description: string;
-  vendor: string;
+
+  description: string | null;
+
+  vendor: string | null;
+
   website_url: string | null;
+
+  icon_url: string | null;
+
   category: string;
+
   monthly_cost: number;
-  owner_department: Department;
+
+  previous_month_cost: number | null;
+
+  owner_department: string;
+
   status: ToolStatus;
+
   active_users_count: number;
+
   created_at: Date;
+
   updated_at: Date;
-};
+}
+
+// =========================
+// UPDATE RESPONSE
+// =========================
+
+export interface ToolUpdateResponse {
+  id: string;
+
+  name: string;
+
+  description: string | null;
+
+  vendor: string | null;
+
+  category: string;
+
+  monthly_cost: number;
+
+  previous_month_cost: number | null;
+
+  owner_department: string;
+
+  status: ToolStatus;
+
+  website_url: string | null;
+
+  icon_url: string | null;
+
+  active_users_count: number;
+
+  created_at: Date;
+
+  updated_at: Date;
+}
+
+// =========================
+// DELETE RESPONSE
+// =========================
+
+export interface ToolDeleteResponse {
+  id: string;
+
+  message: string;
+}

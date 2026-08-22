@@ -1,23 +1,24 @@
+import type { Metadata } from "next";
+
 import HeaderPage from "@/components/header-page";
+
 import { ToolsTable } from "@/components/tools/tools-table";
 import { columns } from "@/app/tools/column";
-import { getAllTools } from "@/services/tools.service";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+
+import { getTools } from "@/services/tools.service";
+import { getCategories } from "@/services/categories.service";
+import { getDepartments } from "@/services/departments.service";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Metadata } from "next";
+
 import { EmptyState } from "@/components/empty-state";
+
 import { StatusFilter } from "@/components/tools/status-filter";
 import { DepartmentFilter } from "@/components/tools/department-filter";
+import { CategoryFilter } from "@/components/tools/category-filter";
 import { ResetFiltersButton } from "@/components/tools/reset-filters-button";
 import { ActiveFilters } from "@/components/tools/active-filters";
 import { SearchResultLabel } from "@/components/tools/search-result-label";
-import { CategoryFilter } from "@/components/tools/category-filter";
-import {
-  getUniqueToolCategories,
-  getUniqueToolDepartments,
-} from "@/utils/tools-filters";
-import { canCreateTool } from "@/lib/permissions";
 import { AddToolButton } from "@/components/tools/add-tool-button";
 
 export const metadata: Metadata = {
@@ -26,16 +27,19 @@ export const metadata: Metadata = {
 };
 
 const ToolsPage = async () => {
-  const data = await getAllTools();
-  const departments = getUniqueToolDepartments(data);
-  const categories = getUniqueToolCategories(data);
+  const [toolsResponse, departments, categories] = await Promise.all([
+    getTools(),
+    getDepartments(),
+    getCategories(),
+  ]);
 
   return (
-    <div className="flex flex-col items-start justify-center gap-4 w-full mb-10">
+    <div className="flex w-full flex-col items-start justify-center gap-4 mb-10">
       <HeaderPage
         title="Tools"
         subtitle="Manage your tools and subscriptions"
       />
+
       <SearchResultLabel />
 
       <Card className="w-full">
@@ -43,19 +47,26 @@ const ToolsPage = async () => {
           <CardTitle>
             <h1 className="text-2xl font-bold">Tools List</h1>
           </CardTitle>
+
           <div className="flex items-center gap-2">
             <StatusFilter />
+
             <DepartmentFilter departments={departments} />
+
             <CategoryFilter categories={categories} />
+
             <ResetFiltersButton />
+
             <AddToolButton />
           </div>
         </CardHeader>
+
         <CardContent>
-          {data.length > 0 ? (
+          {toolsResponse.data.length > 0 ? (
             <>
               <ActiveFilters />
-              <ToolsTable initialData={data} columns={columns} />
+
+              <ToolsTable initialData={toolsResponse} columns={columns} />
             </>
           ) : (
             <EmptyState

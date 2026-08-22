@@ -9,8 +9,9 @@ import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: `Edit Tool`,
-  description: `Update the details of your tool to keep your dashboard up-to-date`,
+  title: "Edit Tool",
+  description:
+    "Update the details of your tool to keep your dashboard up-to-date",
 };
 
 type Props = {
@@ -21,7 +22,8 @@ type Props = {
 
 export default async function EditToolPage({ params }: Props) {
   const { idTool } = await params;
-  const tool = await getToolById(Number(idTool));
+
+  const tool = await getToolById(idTool);
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 p-6">
@@ -29,9 +31,11 @@ export default async function EditToolPage({ params }: Props) {
         title="Edit Tool"
         subtitle="Update the details of your tool to keep your dashboard up-to-date"
       />
+
       <Card>
         <CardHeader className="flex items-center justify-between">
           <CardTitle>Edit Tool</CardTitle>
+
           <Button
             asChild
             size="sm"
@@ -43,6 +47,7 @@ export default async function EditToolPage({ params }: Props) {
             </Link>
           </Button>
         </CardHeader>
+
         <CardContent>
           <ToolEditForm tool={tool} />
         </CardContent>

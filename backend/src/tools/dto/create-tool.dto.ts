@@ -1,69 +1,65 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+// src/tools/dto/create-tool.dto.ts
 
+import { Type } from 'class-transformer';
 import {
-  IsIn,
   IsInt,
+  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   IsUrl,
-  Length,
   MaxLength,
   Min,
 } from 'class-validator';
 
-import { departments } from '../types/tool.enums';
-
-import type { Department } from '../types/tool.enums';
-
 export class CreateToolDto {
-  @ApiProperty({
-    example: 'Linear',
-  })
   @IsString()
-  @Length(2, 100)
+  @IsNotEmpty()
+  @MaxLength(100)
   name!: string;
 
-  @ApiProperty({
-    example: 'Issue tracking and project management',
-  })
   @IsString()
+  @IsNotEmpty()
   @MaxLength(500)
   description!: string;
 
-  @ApiProperty({
-    example: 'Linear',
-  })
   @IsString()
+  @IsNotEmpty()
   @MaxLength(100)
   vendor!: string;
 
-  @ApiPropertyOptional({
-    example: 'https://linear.app',
-  })
-  @IsOptional()
-  @IsUrl()
-  website_url?: string;
-
-  @ApiProperty({
-    example: '2',
-  })
   @IsString()
-  category_id!: string;
+  @IsNotEmpty()
+  category!: string;
 
-  @ApiProperty({
-    example: 8.0,
-  })
+  @IsString()
+  @IsNotEmpty()
+  owner_department!: string;
+
+  @Type(() => Number)
   @IsNumber({
     maxDecimalPlaces: 2,
   })
   @Min(0)
   monthly_cost!: number;
 
-  @ApiProperty({
-    enum: departments,
-    example: 'Engineering',
+  @IsOptional()
+  @IsUrl({
+    require_protocol: true,
   })
-  @IsIn(departments)
-  owner_department!: Department;
+  @MaxLength(500)
+  website_url?: string;
+
+  @IsOptional()
+  @IsUrl({
+    require_protocol: true,
+  })
+  @MaxLength(500)
+  icon_url?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  active_users_count?: number;
 }

@@ -62,7 +62,7 @@ export class ToolsController {
   @ApiBadRequestResponse({
     description: 'Invalid numeric ID',
   })
-  findOne(@Param('id', ParseIntPipe) id: number): Promise<ToolDetailResponse> {
+  findOne(@Param('id') id: string): Promise<ToolDetailResponse> {
     return this.toolsService.findOne(id);
   }
 
@@ -103,7 +103,7 @@ export class ToolsController {
     description: 'Tool or category not found',
   })
   update(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id') id: string,
     @Body() updateToolDto: UpdateToolDto,
   ): Promise<ToolCreateResponse> {
     return this.toolsService.update(id, updateToolDto);
@@ -116,10 +116,7 @@ export class ToolsController {
   @ApiOkResponse({
     description: 'Tool deleted successfully',
   })
-  remove(
-    @Param('id', ParseIntPipe)
-    id: number,
-  ): Promise<{ message: string }> {
+  remove(@Param('id') id: string): Promise<{ message: string }> {
     return this.toolsService.remove(id);
   }
 }

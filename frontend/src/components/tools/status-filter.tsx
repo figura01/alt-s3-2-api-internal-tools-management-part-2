@@ -22,10 +22,10 @@ export function StatusFilter() {
       </SelectTrigger>
 
       <SelectContent>
-        <SelectItem value="all">All status</SelectItem>
-        <SelectItem value="active">Active</SelectItem>
-        <SelectItem value="unused">Unused</SelectItem>
-        <SelectItem value="expiring">Expiring</SelectItem>
+        <SelectItem value="ALL">All status</SelectItem>
+        <SelectItem value="ACTIVE">Active</SelectItem>
+        <SelectItem value="UNUSED">Unused</SelectItem>
+        <SelectItem value="EXPIRING">Expiring</SelectItem>
       </SelectContent>
     </Select>
   );

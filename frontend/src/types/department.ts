@@ -1,9 +1,10 @@
 export type Department = {
   id: string;
   name: string;
-  description: string;
-  created_at: string;
-  updated_at: string;
+  slug: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ApiJsonDepartment = Partial<Department>;

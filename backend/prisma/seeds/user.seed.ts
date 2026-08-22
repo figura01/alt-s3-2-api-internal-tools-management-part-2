@@ -1,6 +1,6 @@
 // prisma/seeds/user.seed.ts
 
-import type { PrismaClient, UserRole, UserStatus } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import * as argon2 from 'argon2';
 
 import { usersData } from '../data/users.data';
@@ -30,20 +30,25 @@ export async function seedUsers(
       },
       update: {
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
         passwordHash,
         departmentId,
-        role: user.role as UserRole,
-        status: user.status as UserStatus,
+        role: user.role,
+        status: user.status,
         jobTitle: user.jobTitle,
         hireDate: new Date(user.hireDate),
       },
       create: {
         name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         passwordHash,
         departmentId,
-        role: user.role as UserRole,
-        status: user.status as UserStatus,
+        role: user.role,
+        status: user.status,
         jobTitle: user.jobTitle,
         hireDate: new Date(user.hireDate),
       },

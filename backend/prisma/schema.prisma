@@ -15,6 +15,8 @@ model User {
   // ---------------------------------------------------------------------------
 
   name      String  @db.VarChar(100)
+  firstName String  @db.VarChar(100)
+  lastName  String  @db.VarChar(100)
   email     String  @unique @db.VarChar(150)
   avatarUrl String? @map("avatar_url") @db.Text
 
@@ -41,9 +43,9 @@ model User {
   // Permissions
   // ---------------------------------------------------------------------------
 
-  role UserRole @default(employee)
+  role UserRole @default(EMPLOYEE)
 
-  status UserStatus @default(active)
+  status UserStatus @default(ACTIVE)
 
   // ---------------------------------------------------------------------------
   // Audit
@@ -124,7 +126,7 @@ model Tool {
   websiteUrl String? @map("website_url")
   iconUrl    String? @map("icon_url")
 
-  status ToolStatus @default(active)
+  status ToolStatus @default(ACTIVE)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(6)
@@ -153,7 +155,7 @@ model AccessRequest {
   processedById String? @map("processed_by_id")
   processedBy   User?   @relation("ProcessedBy", fields: [processedById], references: [id])
 
-  status        RequestStatus @default(pending)
+  status        RequestStatus @default(PENDING)
   reviewComment String?       @map("review_comment") @db.Text
   reason        String?       @db.Text
 
@@ -221,7 +223,7 @@ model UserToolAccess {
   grantedById String?
   revokedById String?
 
-  status    AccessStatus @default(active)
+  status    AccessStatus @default(ACTIVE)
   grantedAt DateTime     @default(now())
   revokedAt DateTime?
 
@@ -235,29 +237,30 @@ model UserToolAccess {
 }
 
 enum AccessStatus {
-  active
-  revoked
+  ACTIVE
+  REVOKED
 }
 
 enum RequestStatus {
-  pending
-  approved
-  rejected
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum UserRole {
-  employee
-  manager
-  admin
+  EMPLOYEE
+  MANAGER
+  ADMIN
 }
 
 enum UserStatus {
-  active
-  inactive
+  ACTIVE
+  INACTIVE
 }
 
 enum ToolStatus {
-  active
-  unused
-  expiring
+  ACTIVE
+  INACTIVE
+  EXPIRING
+  UNUSED
 }

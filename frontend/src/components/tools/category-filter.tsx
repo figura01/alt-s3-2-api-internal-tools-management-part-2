@@ -12,8 +12,10 @@ import {
 
 import { useAppStore } from "@/store/store";
 
+import type { Category } from "@/types/category";
+
 type CategoryFilterProps = {
-  categories: string[];
+  categories: Category[];
 };
 
 export function CategoryFilter({ categories }: CategoryFilterProps) {
@@ -31,8 +33,8 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
         <SelectItem value="all">All categories</SelectItem>
 
         {categories.map((category) => (
-          <SelectItem key={category} value={category.toLowerCase()}>
-            {category}
+          <SelectItem key={category.id} value={category.name}>
+            {category.name}
           </SelectItem>
         ))}
       </SelectContent>

@@ -1,50 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/components/data-table/data-table";
 import { useToolFilters } from "@/store/store";
-
-import type { Tool } from "@/types/tool";
 import { useTools } from "@/hooks/use-tools";
 
+import type { Tool, ToolsResponse } from "@/types/tool";
+
 type Props = {
-  initialData: Tool[];
+  initialData: ToolsResponse;
   columns: ColumnDef<Tool, unknown>[];
 };
 
 export function ToolsTable({ initialData, columns }: Props) {
   const { q, status, department, category } = useToolFilters();
-  const { data = [] } = useTools(initialData);
-  const filteredData = useMemo(() => {
-    const search = q.trim().toLowerCase();
 
-    return data.filter((tool) => {
-      const matchesSearch =
-        !search ||
-        tool.name.toLowerCase().includes(search) ||
-        tool.vendor.toLowerCase().includes(search) ||
-        tool.category.toLowerCase().includes(search) ||
-        tool.owner_department.toLowerCase().includes(search) ||
-        tool.department.toLowerCase().includes(search) ||
-        tool.status.toLowerCase().includes(search);
+  const { data: toolsResponse } = useTools(
+    {
+      query: q || undefined,
 
-      const matchesStatus = status === "all" || tool.status === status;
+      status: status !== "all" ? status : undefined,
 
-      const matchesDepartment =
-        department === "all" ||
-        tool.owner_department.toLowerCase() === department ||
-        tool.department.toLowerCase() === department;
+      department: department !== "all" ? department : undefined,
 
-      const matchesCategory =
-        category === "all" || tool.category.toLowerCase() === category;
+      category: category !== "all" ? category : undefined,
+    },
+    initialData,
+  );
 
-      return (
-        matchesSearch && matchesStatus && matchesDepartment && matchesCategory
-      );
-    });
-  }, [data, q, status, department, category]);
+  const tools = toolsResponse?.data ?? initialData.data;
 
-  return <DataTable data={filteredData} columns={columns} />;
+  return <DataTable data={tools} columns={columns} />;
 }

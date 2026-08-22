@@ -7,6 +7,8 @@ import { LoggerModule } from 'nestjs-pino';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
+import { CategoriesModule } from './categories/categories.module';
+import { DepartmentsModule } from './departments/departments.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { AuthModule } from './auth/auth.module';
     AnalyticsModule,
     PrismaModule,
     AuthModule,
+    CategoriesModule,
+    DepartmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

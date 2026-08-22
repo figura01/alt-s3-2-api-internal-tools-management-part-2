@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   UnauthorizedException,
@@ -9,9 +10,10 @@ import * as argon2 from 'argon2';
 
 import { PrismaService } from '../prisma/prisma.service';
 
-import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dtos/login.dto';
+import { RegisterDto } from './dtos/register.dto';
 import type { JwtPayload } from './interfaces/jwt-payload.interface';
+import { UserRole } from '@prisma/client';
 
 const userSelect = {
   id: true,
@@ -33,7 +35,7 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto) {
-    const existingUser = await this.prisma.users.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: {
         email: registerDto.email,
       },
@@ -45,14 +47,26 @@ export class AuthService {
 
     const passwordHash = await argon2.hash(registerDto.password);
 
-    const user = await this.prisma.users.create({
-      data: {
-        name: registerDto.name,
-        email: registerDto.email,
-        password_hash: passwordHash,
-        department: registerDto.department,
+    const department = await this.prisma.department.findUnique({
+      where: {
+        id: registerDto.departmentId,
       },
-      select: userSelect,
+    });
+
+    if (!department) {
+      throw new BadRequestException('Department not found.');
+    }
+
+    const user = await this.prisma.user.create({
+      data: {
+        firstName: registerDto.firstName,
+        lastName: registerDto.lastName,
+        name: `${registerDto.firstName} ${registerDto.lastName}`,
+        email: registerDto.email,
+        passwordHash,
+        departmentId: department.id,
+        role: UserRole.EMPLOYEE,
+      },
     });
 
     const accessToken = await this.jwtService.signAsync({
@@ -68,7 +82,7 @@ export class AuthService {
   }
 
   async login(loginDto: LoginDto) {
-    const user = await this.prisma.users.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: {
         email: loginDto.email,
       },
@@ -79,7 +93,7 @@ export class AuthService {
     }
 
     const isPasswordValid = await argon2.verify(
-      user.password_hash,
+      user.passwordHash,
       loginDto.password,
     );
 
@@ -87,7 +101,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const safeUser = await this.prisma.users.findUnique({
+    const safeUser = await this.prisma.user.findUnique({
       where: {
         id: user.id,
       },
@@ -111,7 +125,7 @@ export class AuthService {
   }
 
   async me(payload: JwtPayload) {
-    return this.prisma.users.findUnique({
+    return this.prisma.user.findUnique({
       where: {
         id: payload.sub,
       },

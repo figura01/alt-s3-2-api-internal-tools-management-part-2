@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import { ToolStatus } from '@prisma/client';
+
 import { PrismaService } from '../prisma/prisma.service';
 
 import { DepartmentCostsQueryDto } from './dto/department-costs-query.dto';
@@ -10,8 +12,8 @@ import type {
   DepartmentCostItem,
   DepartmentCostsResponse,
   ExpensiveToolsResponse,
-  ToolsByCategoryResponse,
   LowUsageToolsResponse,
+  ToolsByCategoryResponse,
   VendorSummaryResponse,
 } from './types/analytics.types';
 
@@ -19,21 +21,27 @@ import type {
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // =========================
+  // DEPARTMENT COSTS
+  // =========================
+
   async getDepartmentCosts(
     query: DepartmentCostsQueryDto,
   ): Promise<DepartmentCostsResponse> {
-    const toolsResult = await this.prisma.tool.findMany({
+    const tools = await this.prisma.tool.findMany({
       where: {
-        status: 'active',
+        status: ToolStatus.ACTIVE,
+      },
+      select: {
+        monthlyCost: true,
+        activeUsersCount: true,
+        ownerDepartment: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
-
-    const tools = toolsResult as Array<{
-      id: number;
-      monthlyCost: unknown;
-      ownerDepartment: string;
-      activeUsersCount: number;
-    }>;
 
     if (tools.length === 0) {
       return {
@@ -54,7 +62,7 @@ export class AnalyticsService {
     const departmentMap = new Map<string, DepartmentCostItem>();
 
     for (const tool of tools) {
-      const department = tool.ownerDepartment;
+      const department = tool.ownerDepartment.name;
 
       const current = departmentMap.get(department);
 
@@ -72,29 +80,28 @@ export class AnalyticsService {
       }
 
       current.total_cost += Number(tool.monthlyCost);
-
       current.tools_count += 1;
-
       current.total_users += tool.activeUsersCount;
     }
 
     const data = Array.from(departmentMap.values()).map((department) => ({
       ...department,
 
-      total_cost: this.roundCurrency(Number(department.total_cost)),
+      total_cost: this.roundCurrency(department.total_cost),
 
       average_cost_per_tool: this.roundCurrency(
-        Number(department.total_cost / department.tools_count),
+        department.total_cost / department.tools_count,
       ),
 
       cost_percentage: this.roundCurrency(
-        Number((department.total_cost / totalCompanyCost) * 100),
+        totalCompanyCost === 0
+          ? 0
+          : (department.total_cost / totalCompanyCost) * 100,
         1,
       ),
     }));
 
     const sortBy = query.sort_by ?? 'total_cost';
-
     const order = query.order ?? 'desc';
 
     data.sort((a, b) => {
@@ -120,45 +127,56 @@ export class AnalyticsService {
       data,
 
       summary: {
-        total_company_cost: this.roundCurrency(Number(totalCompanyCost)),
-
+        total_company_cost: this.roundCurrency(totalCompanyCost),
         departments_count: data.length,
-
         most_expensive_department: mostExpensiveDepartment,
       },
     };
   }
 
+  // =========================
+  // EXPENSIVE TOOLS
+  // =========================
+
   async getExpensiveTools(
     query: ExpensiveToolsQueryDto,
   ): Promise<ExpensiveToolsResponse> {
-    const toolsResult = await this.prisma.tool.findMany({
+    const tools = await this.prisma.tool.findMany({
       where: {
-        status: 'active',
+        status: ToolStatus.ACTIVE,
+
         ...(query.min_cost !== undefined && {
           monthlyCost: {
             gte: query.min_cost,
           },
         }),
       },
+
+      select: {
+        id: true,
+        name: true,
+        monthlyCost: true,
+        activeUsersCount: true,
+        vendor: true,
+
+        ownerDepartment: {
+          select: {
+            name: true,
+          },
+        },
+      },
+
       orderBy: {
         monthlyCost: 'desc',
       },
+
       take: query.limit ?? 10,
     });
-
-    const tools = toolsResult as Array<{
-      id: number;
-      name: string;
-      monthlyCost: unknown;
-      activeUsersCount: number;
-      ownerDepartment: string;
-      vendor: string | null;
-    }>;
 
     if (tools.length === 0) {
       return {
         data: [],
+
         analysis: {
           total_tools_analyzed: 0,
           avg_cost_per_user_company: 0,
@@ -182,6 +200,7 @@ export class AnalyticsService {
 
     const data = tools.map((tool) => {
       const monthlyCost = Number(tool.monthlyCost);
+
       const costPerUser = this.calculateCostPerUser(
         monthlyCost,
         tool.activeUsersCount,
@@ -195,11 +214,17 @@ export class AnalyticsService {
       return {
         id: tool.id,
         name: tool.name,
-        monthly_cost: this.roundCurrency(Number(tool.monthlyCost)),
+
+        monthly_cost: this.roundCurrency(monthlyCost),
+
         active_users_count: tool.activeUsersCount,
-        cost_per_user: this.roundCurrency(Number(costPerUser)),
-        department: tool.ownerDepartment,
+
+        cost_per_user: this.roundCurrency(costPerUser),
+
+        department: tool.ownerDepartment.name,
+
         vendor: tool.vendor ?? 'Unknown',
+
         efficiency_rating: efficiencyRating,
       };
     });
@@ -213,35 +238,40 @@ export class AnalyticsService {
 
       analysis: {
         total_tools_analyzed: data.length,
+
         avg_cost_per_user_company: this.roundCurrency(avgCostPerUserCompany),
+
         potential_savings_identified: this.roundCurrency(potentialSavings),
       },
     };
   }
 
+  // =========================
+  // TOOLS BY CATEGORY
+  // =========================
+
   async getToolsByCategory(): Promise<ToolsByCategoryResponse> {
-    const toolsResult = await this.prisma.tool.findMany({
+    const tools = await this.prisma.tool.findMany({
       where: {
-        status: 'active',
+        status: ToolStatus.ACTIVE,
       },
-      include: {
-        category: true,
+
+      select: {
+        monthlyCost: true,
+        activeUsersCount: true,
+
+        category: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
-
-    const tools = toolsResult as Array<{
-      id: number;
-      monthlyCost: unknown;
-      activeUsersCount: number;
-      category: {
-        id: number;
-        name: string;
-      };
-    }>;
 
     if (tools.length === 0) {
       return {
         data: [],
+
         insights: {
           most_expensive_category: null,
           most_efficient_category: null,
@@ -298,11 +328,16 @@ export class AnalyticsService {
 
       return {
         category_name: category.category_name,
+
         tools_count: category.tools_count,
-        total_cost: this.roundCurrency(Number(category.total_cost)),
+
+        total_cost: this.roundCurrency(category.total_cost),
+
         total_users: category.total_users,
-        percentage_of_budget: this.roundCurrency(Number(percentageOfBudget), 1),
-        average_cost_per_user: this.roundCurrency(Number(averageCostPerUser)),
+
+        percentage_of_budget: this.roundCurrency(percentageOfBudget, 1),
+
+        average_cost_per_user: this.roundCurrency(averageCostPerUser),
       };
     });
 
@@ -328,6 +363,7 @@ export class AnalyticsService {
 
     return {
       data,
+
       insights: {
         most_expensive_category: mostExpensiveCategory,
         most_efficient_category: mostEfficientCategory,
@@ -335,35 +371,47 @@ export class AnalyticsService {
     };
   }
 
+  // =========================
+  // LOW USAGE TOOLS
+  // =========================
+
   async getLowUsageTools(
     query: LowUsageToolsQueryDto,
   ): Promise<LowUsageToolsResponse> {
     const maxUsers = query.max_users ?? 5;
 
-    const toolsResult = await this.prisma.tool.findMany({
+    const tools = await this.prisma.tool.findMany({
       where: {
-        status: 'active',
+        status: ToolStatus.ACTIVE,
+
         activeUsersCount: {
           lte: maxUsers,
         },
       },
+
+      select: {
+        id: true,
+        name: true,
+        monthlyCost: true,
+        activeUsersCount: true,
+        vendor: true,
+
+        ownerDepartment: {
+          select: {
+            name: true,
+          },
+        },
+      },
+
       orderBy: {
         monthlyCost: 'desc',
       },
     });
 
-    const tools = toolsResult as Array<{
-      id: number;
-      name: string;
-      monthlyCost: unknown;
-      activeUsersCount: number;
-      ownerDepartment: string;
-      vendor: string | null;
-    }>;
-
     if (tools.length === 0) {
       return {
         data: [],
+
         savings_analysis: {
           total_underutilized_tools: 0,
           potential_monthly_savings: 0,
@@ -375,43 +423,29 @@ export class AnalyticsService {
     const data = tools.map((tool) => {
       const monthlyCost = Number(tool.monthlyCost);
 
-      const costPerUser =
-        tool.activeUsersCount === 0
-          ? monthlyCost
-          : monthlyCost / tool.activeUsersCount;
+      const costPerUser = this.calculateCostPerUser(
+        monthlyCost,
+        tool.activeUsersCount,
+      );
 
-      let warningLevel: 'low' | 'medium' | 'high';
+      const warningLevel = this.getWarningLevel(
+        costPerUser,
+        tool.activeUsersCount,
+      );
 
-      if (tool.activeUsersCount === 0) {
-        warningLevel = 'high';
-      } else if (costPerUser < 20) {
-        warningLevel = 'low';
-      } else if (costPerUser <= 50) {
-        warningLevel = 'medium';
-      } else {
-        warningLevel = 'high';
-      }
-
-      let potentialAction = 'Monitor usage trends';
-
-      if (warningLevel === 'medium') {
-        potentialAction = 'Review usage and consider optimization';
-      }
-
-      if (warningLevel === 'high') {
-        potentialAction = 'Consider canceling or downgrading';
-      }
+      const potentialAction = this.getPotentialAction(warningLevel);
 
       return {
         id: tool.id,
         name: tool.name,
 
-        monthly_cost: this.roundCurrency(Number(monthlyCost)),
+        monthly_cost: this.roundCurrency(monthlyCost),
+
         active_users_count: tool.activeUsersCount,
 
-        cost_per_user: this.roundCurrency(Number(costPerUser)),
+        cost_per_user: this.roundCurrency(costPerUser),
 
-        department: tool.ownerDepartment,
+        department: tool.ownerDepartment.name,
 
         vendor: tool.vendor ?? 'Unknown',
 
@@ -434,35 +468,42 @@ export class AnalyticsService {
       savings_analysis: {
         total_underutilized_tools: data.length,
 
-        potential_monthly_savings: this.roundCurrency(
-          Number(potentialMonthlySavings),
-        ),
+        potential_monthly_savings: this.roundCurrency(potentialMonthlySavings),
 
         potential_annual_savings: this.roundCurrency(
-          Number((potentialMonthlySavings * 12).toFixed(2)),
+          potentialMonthlySavings * 12,
         ),
       },
     };
   }
 
+  // =========================
+  // VENDOR SUMMARY
+  // =========================
+
   async getVendorSummary(): Promise<VendorSummaryResponse> {
-    const toolsResult = await this.prisma.tool.findMany({
+    const tools = await this.prisma.tool.findMany({
       where: {
-        status: 'active',
+        status: ToolStatus.ACTIVE,
+      },
+
+      select: {
+        vendor: true,
+        monthlyCost: true,
+        activeUsersCount: true,
+
+        ownerDepartment: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
-
-    const tools = toolsResult as Array<{
-      id: number;
-      vendor: string | null;
-      monthlyCost: unknown;
-      activeUsersCount: number;
-      ownerDepartment: string;
-    }>;
 
     if (tools.length === 0) {
       return {
         data: [],
+
         vendor_insights: {
           most_expensive_vendor: null,
           most_efficient_vendor: null,
@@ -490,13 +531,14 @@ export class AnalyticsService {
       if (!current) {
         vendorMap.set(vendor, {
           vendor,
+
           tools_count: 1,
 
           total_monthly_cost: Number(tool.monthlyCost),
 
           total_users: tool.activeUsersCount,
 
-          departments: new Set([tool.ownerDepartment]),
+          departments: new Set([tool.ownerDepartment.name]),
         });
 
         continue;
@@ -508,7 +550,7 @@ export class AnalyticsService {
 
       current.total_users += tool.activeUsersCount;
 
-      current.departments.add(tool.ownerDepartment);
+      current.departments.add(tool.ownerDepartment.name);
     }
 
     const data = Array.from(vendorMap.values()).map((vendor) => {
@@ -527,9 +569,7 @@ export class AnalyticsService {
 
         tools_count: vendor.tools_count,
 
-        total_monthly_cost: this.roundCurrency(
-          Number(vendor.total_monthly_cost),
-        ),
+        total_monthly_cost: this.roundCurrency(vendor.total_monthly_cost),
 
         total_users: vendor.total_users,
 
@@ -537,7 +577,7 @@ export class AnalyticsService {
           .sort((a, b) => a.localeCompare(b))
           .join(','),
 
-        average_cost_per_user: this.roundCurrency(Number(averageCostPerUser)),
+        average_cost_per_user: this.roundCurrency(averageCostPerUser),
 
         vendor_efficiency: vendorEfficiency,
       };
@@ -572,9 +612,7 @@ export class AnalyticsService {
 
       vendor_insights: {
         most_expensive_vendor: mostExpensiveVendor,
-
         most_efficient_vendor: mostEfficientVendor,
-
         single_tool_vendors: singleToolVendors,
       },
     };
@@ -586,10 +624,6 @@ export class AnalyticsService {
 
   private roundCurrency(value: number, toFixedBy = 2): number {
     return Number(value.toFixed(toFixedBy));
-  }
-
-  private roundPercentage(value: number): number {
-    return Number(value.toFixed(1));
   }
 
   private calculateCostPerUser(totalCost: number, totalUsers: number): number {
