@@ -1,5 +1,4 @@
 import type { Tool } from "@/types/tool";
-import type { UserTool } from "@/types/user-tool";
 
 export function getTotalMonthlySpend(tools: Tool[]): number {
   return tools.reduce((total, tool) => {
@@ -14,11 +13,11 @@ export function getAverageCostPerTool(tools: Tool[]): number {
 }
 
 export function getUnusedTools(tools: Tool[]): Tool[] {
-  return tools.filter((tool) => tool.status === "unused");
+  return tools.filter((tool) => tool.status === "UNUSED");
 }
 
 export function getExpiringTools(tools: Tool[]): Tool[] {
-  return tools.filter((tool) => tool.status === "expiring");
+  return tools.filter((tool) => tool.status === "EXPIRING");
 }
 
 export function getTopExpensiveTools(tools: Tool[], limit = 5): Tool[] {
@@ -42,37 +41,23 @@ export function getCostByDepartment(tools: Tool[]) {
   }));
 }
 
-export function getAdoptionByTool(tools: Tool[], userTools: UserTool[]) {
-  return tools.map((tool) => {
-    const usageCount = userTools.filter(
-      (relation) => relation.tool_id === tool.id,
-    ).length;
-
-    return {
-      id: tool.id,
-      name: tool.name,
-      users: usageCount,
-      monthly_cost: tool.monthly_cost,
-    };
-  });
+export function getAdoptionByTool(tools: Tool[]) {
+  return tools.map((tool) => ({
+    id: tool.id,
+    name: tool.name,
+    users: tool.active_users_count,
+    monthly_cost: tool.monthly_cost,
+  }));
 }
 
-export function getLeastUsedTools(
-  tools: Tool[],
-  userTools: UserTool[],
-  limit = 5,
-) {
-  return getAdoptionByTool(tools, userTools)
+export function getLeastUsedTools(tools: Tool[], limit = 5) {
+  return getAdoptionByTool(tools)
     .sort((a, b) => a.users - b.users)
     .slice(0, limit);
 }
 
-export function getMostUsedTools(
-  tools: Tool[],
-  userTools: UserTool[],
-  limit = 5,
-) {
-  return getAdoptionByTool(tools, userTools)
+export function getMostUsedTools(tools: Tool[], limit = 5) {
+  return getAdoptionByTool(tools)
     .sort((a, b) => b.users - a.users)
     .slice(0, limit);
 }

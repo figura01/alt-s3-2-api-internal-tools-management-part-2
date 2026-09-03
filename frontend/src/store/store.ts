@@ -4,12 +4,14 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import type { AuthUser } from "@/types/auth";
 // import { userRole } from "@/types/auth";
+import type { ToolStatus } from "@/types/tool";
+import { parseToolStatus } from "@/utils/tools-filters";
 
 type SortOrder = "asc" | "desc";
 
 type AppStore = {
   q: string;
-  status: string;
+  status: ToolStatus | "all";
   department: string;
   page: number;
   pageSize: number;
@@ -21,7 +23,7 @@ type AppStore = {
   setCurrentUser: (user: AuthUser | null) => void;
   logout: () => void;
   setQuery: (q: string) => void;
-  setStatus: (status: string) => void;
+  setStatus: (status: ToolStatus | "all") => void;
   setDepartment: (department: string) => void;
   setCategory: (category: string) => void;
   setPage: (page: number) => void;
@@ -64,7 +66,7 @@ export const useAppStore = create<AppStore>()(
       setCategory: (category) =>
         set(
           {
-            category: category.toLowerCase(),
+            category,
             page: 1,
           },
           false,
@@ -84,7 +86,7 @@ export const useAppStore = create<AppStore>()(
       setStatus: (status) =>
         set(
           {
-            status: status.toLowerCase(),
+            status,
             page: 1,
           },
           false,
@@ -94,7 +96,7 @@ export const useAppStore = create<AppStore>()(
       setDepartment: (department) =>
         set(
           {
-            department: department.toLowerCase(),
+            department,
             page: 1,
           },
           false,
@@ -152,9 +154,9 @@ export const useAppStore = create<AppStore>()(
         set(
           {
             q: params.get("q") ?? "",
-            status: params.get("status")?.toLowerCase() ?? "all",
-            department: params.get("department")?.toLowerCase() ?? "all",
-            category: params.get("category")?.toLowerCase() ?? "all",
+            status: parseToolStatus(params.get("status")),
+            department: params.get("department") ?? "all",
+            category: params.get("category") ?? "all",
             page: Number(params.get("page") ?? 1),
             pageSize: Number(params.get("pageSize") ?? 10),
             sort: params.get("sort"),
@@ -176,12 +178,16 @@ export const useToolFilters = () => {
   const status = useAppStore((state) => state.status);
   const department = useAppStore((state) => state.department);
   const category = useAppStore((state) => state.category);
+  const page = useAppStore((state) => state.page);
+  const pageSize = useAppStore((state) => state.pageSize);
 
   return {
     q,
     status,
     department,
     category,
+    page,
+    pageSize,
   };
 };
 

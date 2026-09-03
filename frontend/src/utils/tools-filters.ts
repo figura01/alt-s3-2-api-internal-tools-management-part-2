@@ -1,4 +1,4 @@
-import type { Tool } from "@/types/tool";
+import { TOOL_STATUSES, type ToolStatus, type Tool } from "@/types/tool";
 
 export function getUniqueToolDepartments(tools: Tool[]) {
   return Array.from(
@@ -19,4 +19,14 @@ export function getUniqueToolCategories(tools: Tool[]) {
         .filter((category): category is string => Boolean(category)),
     ),
   ).sort();
+}
+
+export function parseToolStatus(value: string | null): ToolStatus | "all" {
+  if (!value || value === "all") {
+    return "all";
+  }
+
+  return TOOL_STATUSES.includes(value as ToolStatus)
+    ? (value as ToolStatus)
+    : "all";
 }

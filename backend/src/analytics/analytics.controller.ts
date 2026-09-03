@@ -14,6 +14,7 @@ import type {
   LowUsageToolsResponse,
   ToolsByCategoryResponse,
   VendorSummaryResponse,
+  KpiAnalyticsResponse,
 } from './types/analytics.types';
 
 @ApiTags('analytics')
@@ -83,5 +84,16 @@ export class AnalyticsController {
   })
   getVendorSummary(): Promise<VendorSummaryResponse> {
     return this.analyticsService.getVendorSummary();
+  }
+
+  @Get()
+  @ApiOperation({
+    summary: 'Get dashboard analytics',
+  })
+  @ApiOkResponse({
+    description: 'Dashboard analytics retrieved successfully',
+  })
+  getAnalytics(): Promise<KpiAnalyticsResponse> {
+    return this.analyticsService.getAnalytics();
   }
 }

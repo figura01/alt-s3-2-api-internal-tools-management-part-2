@@ -23,6 +23,8 @@ export type GetToolsParams = {
   status?: string;
   department?: string;
   category?: string;
+  page?: number;
+  limit?: number;
 };
 
 export async function getTools(
@@ -46,6 +48,14 @@ export async function getTools(
     searchParams.set("category", params.category);
   }
 
+  if (params.page !== undefined) {
+    searchParams.set("page", String(params.page));
+  }
+
+  if (params.limit !== undefined) {
+    searchParams.set("limit", String(params.limit));
+  }
+
   const queryString = searchParams.toString();
 
   const url = `/tools${queryString ? `?${queryString}` : ""}`;
@@ -58,6 +68,38 @@ export async function getTools(
     ...response,
     data: response.data.map(normalizeTool),
   };
+}
+
+export async function getAllTools(): Promise<Tool[]> {
+  const limit = 100;
+
+  const firstPage = await getTools({
+    page: 1,
+    limit,
+  });
+
+  const tools = [...firstPage.data];
+
+  const totalPages = Math.ceil(firstPage.filtered / limit);
+
+  if (totalPages <= 1) {
+    return tools;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getTools({
+        page: index + 2,
+        limit,
+      }),
+    ),
+  );
+
+  remainingPages.forEach((response) => {
+    tools.push(...response.data);
+  });
+
+  return tools;
 }
 
 /* -------------------------------------------------------------------------- */

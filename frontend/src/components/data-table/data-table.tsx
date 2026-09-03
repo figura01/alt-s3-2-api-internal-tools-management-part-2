@@ -2,11 +2,9 @@
 
 import {
   type ColumnDef,
-  type PaginationState,
   type SortingState,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -37,11 +35,13 @@ import {
 type DataTableProps<TData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  total: number;
 };
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  total,
 }: DataTableProps<TData, TValue>) {
   const page = useAppStore((state) => state.page);
   const pageSize = useAppStore((state) => state.pageSize);
@@ -57,7 +57,9 @@ export function DataTable<TData, TValue>({
     pageSize,
   };
 
-  const sorting = sort
+  const pageCount = Math.ceil(total / pageSize);
+
+  const sorting: SortingState = sort
     ? [
         {
           id: sort,
@@ -69,17 +71,27 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
+
     state: {
       pagination,
       sorting,
     },
+
+    // La pagination est gérée par l'API.
+    manualPagination: true,
+    pageCount,
+
     onPaginationChange: (updater) => {
       const next =
         typeof updater === "function" ? updater(pagination) : updater;
 
       setPage(next.pageIndex + 1);
-      setPageSize(next.pageSize);
+
+      if (next.pageSize !== pageSize) {
+        setPageSize(next.pageSize);
+      }
     },
+
     onSortingChange: (updater) => {
       const next = typeof updater === "function" ? updater(sorting) : updater;
 
@@ -92,18 +104,18 @@ export function DataTable<TData, TValue>({
 
       setSortingStore(firstSort.id, firstSort.desc ? "desc" : "asc");
     },
+
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // Si un filtre réduit le nombre de pages alors qu'on se trouve
+  // sur une page qui n'existe plus, retour à la première page.
   useEffect(() => {
-    const pageCount = table.getPageCount();
-
     if (pageCount > 0 && page > pageCount) {
       setPage(1);
     }
-  }, [data.length, page, setPage, table]);
+  }, [page, pageCount, setPage]);
 
   return (
     <div className="space-y-4">
@@ -161,6 +173,7 @@ export function DataTable<TData, TValue>({
           <Select
             value={String(pageSize)}
             onValueChange={(value) => {
+              setPage(1);
               setPageSize(Number(value));
             }}
           >
@@ -180,7 +193,7 @@ export function DataTable<TData, TValue>({
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            Page {pagination.pageIndex + 1} of {table.getPageCount()}
+            Page {page} of {pageCount || 1}
           </span>
 
           <Button

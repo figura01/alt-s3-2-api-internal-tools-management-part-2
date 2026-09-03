@@ -1,4 +1,11 @@
-export type ToolStatus = "ACTIVE" | "INACTIVE" | "EXPIRING" | "UNUSED";
+export const TOOL_STATUSES = [
+  "ACTIVE",
+  "INACTIVE",
+  "EXPIRING",
+  "UNUSED",
+] as const;
+
+export type ToolStatus = (typeof TOOL_STATUSES)[number];
 
 export type Tool = {
   id?: string;

@@ -15,6 +15,7 @@ import type {
   LowUsageToolsResponse,
   ToolsByCategoryResponse,
   VendorSummaryResponse,
+  KpiAnalyticsResponse,
 } from './types/analytics.types';
 
 @Injectable()
@@ -618,6 +619,92 @@ export class AnalyticsService {
     };
   }
 
+  async getAnalytics(): Promise<KpiAnalyticsResponse> {
+    const MONTHLY_BUDGET_LIMIT = 30_000;
+
+    const [tools, totalUsers] = await Promise.all([
+      this.prisma.tool.findMany({
+        select: {
+          monthlyCost: true,
+          previousMonthCost: true,
+          activeUsersCount: true,
+          createdAt: true,
+        },
+      }),
+
+      this.prisma.user.count(),
+    ]);
+
+    const currentMonthTotal = tools.reduce(
+      (sum, tool) => sum + Number(tool.monthlyCost),
+      0,
+    );
+
+    const previousMonthTotal = tools.reduce(
+      (sum, tool) => sum + Number(tool.previousMonthCost ?? tool.monthlyCost),
+      0,
+    );
+
+    const activeUsers = tools.reduce(
+      (sum, tool) => sum + tool.activeUsersCount,
+      0,
+    );
+
+    const currentCostPerUser =
+      activeUsers > 0 ? currentMonthTotal / activeUsers : 0;
+
+    const previousCostPerUser =
+      activeUsers > 0 ? previousMonthTotal / activeUsers : 0;
+
+    const budgetUtilization =
+      MONTHLY_BUDGET_LIMIT > 0
+        ? (currentMonthTotal / MONTHLY_BUDGET_LIMIT) * 100
+        : 0;
+
+    const budgetChange =
+      previousMonthTotal > 0
+        ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
+        : 0;
+
+    const costPerUserChange =
+      previousCostPerUser > 0 ? currentCostPerUser - previousCostPerUser : 0;
+
+    return {
+      budget_overview: {
+        monthly_limit: MONTHLY_BUDGET_LIMIT,
+        current_month_total: this.roundCurrency(currentMonthTotal),
+        previous_month_total: this.roundCurrency(previousMonthTotal),
+
+        budget_utilization: budgetUtilization.toFixed(1),
+
+        trend_percentage: budgetChange.toFixed(1),
+      },
+
+      kpi_trends: {
+        budget_change: `${budgetChange >= 0 ? '+' : ''}${budgetChange.toFixed(0)}%`,
+
+        // Pas assez d'historique dans le modèle actuel
+        tools_change: '0',
+
+        // Pas assez d'historique dans le modèle actuel
+        departments_change: '0',
+
+        cost_per_user_change: `${costPerUserChange >= 0 ? '+' : '-'}€${Math.abs(
+          Math.round(costPerUserChange),
+        )}`,
+      },
+
+      cost_analytics: {
+        cost_per_user: this.roundCurrency(currentCostPerUser),
+
+        previous_cost_per_user: this.roundCurrency(previousCostPerUser),
+
+        active_users: activeUsers,
+
+        total_users: totalUsers,
+      },
+    };
+  }
   // =========================
   // PRIVATE HELPERS
   // =========================

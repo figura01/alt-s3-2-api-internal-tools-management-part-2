@@ -44,8 +44,8 @@ export function useTools(
 
 export function useTool(id: string) {
   return useQuery({
-    queryKey: toolQueryKey(String(id)),
-    queryFn: () => getToolById(String(id)),
+    queryKey: toolQueryKey(id),
+    queryFn: () => getToolById(id),
     enabled: Boolean(id),
   });
 }
@@ -85,7 +85,7 @@ export function useUpdateTool() {
         }),
 
         queryClient.invalidateQueries({
-          queryKey: toolQueryKey(String(variables.id)),
+          queryKey: toolQueryKey(variables.id),
         }),
       ]);
     },
@@ -109,7 +109,7 @@ export function useDeleteTool() {
         }),
 
         queryClient.invalidateQueries({
-          queryKey: toolQueryKey(String(id)),
+          queryKey: toolQueryKey(id),
         }),
       ]);
 

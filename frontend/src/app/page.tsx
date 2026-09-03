@@ -2,10 +2,11 @@ import HeaderPage from "@/components/header-page";
 // import SectionKPIs from "@/components/dashboard/kpis/section-kpis";
 import KpiGrid from "@/components/kpis/kpi-grid";
 import RecentsTools from "@/components/tools/table-recent-tools";
-import { getRecentToolsForTable, getAllTools } from "@/services/tools.service";
+import { getRecentToolsForTable, getTools } from "@/services/tools.service";
 import { getAnalytics } from "@/services/analytics.service";
 import { getDepartments } from "@/services/departments.service";
 import { Metadata } from "next/dist/lib/metadata/types/metadata-interface";
+import { Tool } from "@/types/tool";
 
 export const metadata: Metadata = {
   title: "Dashboard",
@@ -15,13 +16,13 @@ export const metadata: Metadata = {
 export default async function Home() {
   const [analytics, tools, departments, recentTools] = await Promise.all([
     getAnalytics(),
-    getAllTools(),
+    getTools(),
     getDepartments(),
     getRecentToolsForTable(),
   ]);
 
-  const activeToolsCount = tools.filter(
-    (tool) => tool.status === "active",
+  const activeToolsCount = tools.data.filter(
+    (tool: Tool) => tool.status === "ACTIVE",
   ).length;
 
   const kpis = [

@@ -1,7 +1,6 @@
 import { getAnalytics } from "@/services/analytics.service";
 import { getDepartments } from "@/services/departments.service";
 import { getAllTools } from "@/services/tools.service";
-import { getAllUserTools } from "@/services/user-tools.service";
 
 import {
   getCostByDepartment,
@@ -14,11 +13,10 @@ import {
 } from "@/utils/analytics";
 
 export async function getAnalyticsDashboardData() {
-  const [analytics, departments, tools, userTools] = await Promise.all([
+  const [analytics, departments, tools] = await Promise.all([
     getAnalytics(),
     getDepartments(),
     getAllTools(),
-    getAllUserTools(),
   ]);
 
   const totalMonthlySpend = analytics.budget_overview.current_month_total;
@@ -33,9 +31,9 @@ export async function getAnalyticsDashboardData() {
 
   const topExpensiveTools = getTopExpensiveTools(tools);
 
-  const mostUsedTools = getMostUsedTools(tools, userTools);
+  const mostUsedTools = getMostUsedTools(tools);
 
-  const leastUsedTools = getLeastUsedTools(tools, userTools);
+  const leastUsedTools = getLeastUsedTools(tools);
 
   const unusedTools = getUnusedTools(tools);
 
@@ -47,7 +45,6 @@ export async function getAnalyticsDashboardData() {
     analytics,
     departments,
     tools,
-    userTools,
     totalMonthlySpend,
     monthlyLimit,
     budgetUtilization,

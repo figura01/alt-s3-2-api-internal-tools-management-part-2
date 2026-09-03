@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_JSON_API_URL;
+const API_URL =
+  typeof window === "undefined"
+    ? process.env.API_URL
+    : process.env.NEXT_PUBLIC_API_URL;
 const AUTH_TOKEN_KEY = process.env.NEXT_PUBLIC_AUTH_TOKEN_KEY;
 
 export async function api<T>(
