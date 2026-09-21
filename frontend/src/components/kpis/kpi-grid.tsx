@@ -15,9 +15,9 @@ type KpiVariant = "green" | "blue" | "orange" | "pink";
 
 type Kpi = {
   title: string;
-  value: number;
+  value: number | null;
   suffix?: string;
-  trend: number;
+  trend: number | null;
   format: "currency" | "number";
   trendFormat: "currency" | "percentage" | "number";
   progress?: number;
@@ -63,7 +63,7 @@ export default function KpiGrid({ kpis }: Props) {
       {kpis.map((kpi) => {
         const Icon = icons[kpi.variant];
         const trend =
-          kpi.trendFormat === "currency"
+          kpi.trend === null ? "—" : kpi.trendFormat === "currency"
             ? formatCurrency(kpi.trend, locale, currency, true)
             : kpi.trendFormat === "percentage"
               ? formatPercentage(kpi.trend, locale, true)
@@ -95,7 +95,7 @@ export default function KpiGrid({ kpis }: Props) {
                 <p className="text-3xl font-bold tracking-tight">
                   {kpi.format === "currency"
                     ? formatCurrency(kpi.value, locale, currency)
-                    : new Intl.NumberFormat(locale).format(kpi.value)}
+                    : kpi.value === null ? "—" : new Intl.NumberFormat(locale).format(kpi.value)}
                 </p>
 
                 {kpi.suffix && (

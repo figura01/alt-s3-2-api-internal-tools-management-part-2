@@ -30,7 +30,7 @@ test('department series uses only selected records', () => {
 });
 test('CSV exports real history and blank missing values', () => {
   const { buildAnalyticsCsv } = load('src/utils/export-analytics.ts');
-  const data = { spendHistory: history, analytics: { cost_analytics: { cost_per_user: 0, active_users: 0, total_users: 0 }, kpi_trends: {} }, totalMonthlySpend: 0, monthlyLimit: 0, budgetUtilization: 0, potentialSavings: 0, unusedTools: [], expiringTools: [], departmentCosts: [], tools: [], topExpensiveTools: [], mostUsedTools: [], leastUsedTools: [] };
+  const data = { spendHistory: history, analytics: { cost_analytics: { cost_per_user: 0, cumulative_tool_users: 0, active_users: 0, total_users: 0 }, kpi_trends: {} }, totalMonthlySpend: 0, monthlyLimit: 0, budgetUtilization: 0, potentialSavings: 0, unusedTools: [], expiringTools: [], departmentCosts: [], tools: [], topExpensiveTools: [], mostUsedTools: [], leastUsedTools: [] };
   const csv = buildAnalyticsCsv(data, { range: '3m', department: 'all', currency: 'EUR' });
   assert.ok(csv.includes('"Spend evolution","2025-11",0.3,'));
   assert.ok(csv.includes('"Spend evolution","2025-12","",'));

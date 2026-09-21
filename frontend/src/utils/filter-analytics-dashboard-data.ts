@@ -29,13 +29,6 @@ export function filterAnalyticsDashboardData(
     0,
   );
 
-  const activeUsers = filteredTools.reduce(
-    (sum, tool) => sum + tool.active_users_count,
-    0,
-  );
-
-  const costPerUser = activeUsers > 0 ? totalMonthlySpend / activeUsers : 0;
-
   const budgetUtilization =
     data.monthlyLimit > 0 ? (totalMonthlySpend / data.monthlyLimit) * 100 : 0;
 
@@ -47,22 +40,6 @@ export function filterAnalyticsDashboardData(
 
     totalMonthlySpend,
     budgetUtilization,
-
-    analytics: {
-      ...data.analytics,
-
-      budget_overview: {
-        ...data.analytics.budget_overview,
-        current_month_total: totalMonthlySpend,
-        budget_utilization: budgetUtilization,
-      },
-
-      cost_analytics: {
-        ...data.analytics.cost_analytics,
-        active_users: activeUsers,
-        cost_per_user: costPerUser,
-      },
-    },
 
     departmentCosts: getCostByDepartment(filteredTools),
     topExpensiveTools: getTopExpensiveTools(filteredTools),

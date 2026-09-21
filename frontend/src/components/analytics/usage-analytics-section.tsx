@@ -27,14 +27,14 @@ export function UsageAnalyticsSection({ data }: Props) {
   const maxUsers = Math.max(...data.mostUsedTools.map((tool) => tool.users), 1);
   const departmentActivity = data.departmentCosts.map((department) => ({
     name: department.name,
-    activity: Math.round((department.value / data.totalMonthlySpend) * 100),
+    activity: data.totalMonthlySpend > 0 ? Math.round((department.value / data.totalMonthlySpend) * 100) : 0,
   }));
 
   return (
     <section className="grid gap-6 xl:grid-cols-2">
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>User Adoption Rates</CardTitle>
+          <CardTitle>Tool User Counts</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-5">
@@ -91,7 +91,7 @@ export function UsageAnalyticsSection({ data }: Props) {
                     <p className="font-medium">{tool.name}</p>
 
                     <p className="text-xs text-muted-foreground">
-                      #{index + 1} by adoption
+                      #{index + 1} by tool user count
                     </p>
                   </div>
 
@@ -120,7 +120,7 @@ export function UsageAnalyticsSection({ data }: Props) {
                     <p className="font-medium">{tool.name}</p>
 
                     <p className="text-xs text-muted-foreground">
-                      #{index + 1} low adoption
+                      #{index + 1} low tool user count
                     </p>
                   </div>
 
@@ -136,7 +136,7 @@ export function UsageAnalyticsSection({ data }: Props) {
 
       <Card className="glass-card rounded-2xl xl:col-span-2">
         <CardHeader>
-          <CardTitle>Department Activity</CardTitle>
+          <CardTitle>Department Share of Spending</CardTitle>
         </CardHeader>
 
         <CardContent className="h-80">

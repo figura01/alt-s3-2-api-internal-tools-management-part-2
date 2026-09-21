@@ -25,6 +25,7 @@ type Props = {
 
   departments: Department[];
   onExport: () => void;
+  exportDisabled?: boolean;
 };
 
 export function AnalyticsHeader({
@@ -34,6 +35,7 @@ export function AnalyticsHeader({
   onDepartmentChange,
   departments,
   onExport,
+  exportDisabled,
 }: Props) {
   return (
     <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -78,7 +80,7 @@ export function AnalyticsHeader({
           </SelectContent>
         </Select>
 
-        <Button variant="outline" onClick={onExport}>
+        <Button variant="outline" onClick={onExport} disabled={exportDisabled}>
           <Download className="mr-2 h-4 w-4" />
           Export CSV
         </Button>

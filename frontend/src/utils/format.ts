@@ -1,8 +1,9 @@
 export function formatPercentage(
-  value: number,
+  value: number | null,
   locale: string,
   showSign = false,
 ): string {
+  if (value === null) return "—";
   return new Intl.NumberFormat(locale, {
     style: "percent",
     minimumFractionDigits: 0,
@@ -12,11 +13,12 @@ export function formatPercentage(
 }
 
 export function formatCurrency(
-  value: number,
+  value: number | null,
   locale: string,
   currency: string,
   showSign = false,
 ): string {
+  if (value === null) return "—";
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,

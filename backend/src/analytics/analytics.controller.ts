@@ -1,3 +1,4 @@
+import { KpiQueryDto } from './dto/kpi-query.dto';
 import { Roles } from '../auth/roles.decorator';
 import { Controller, Get, Query } from '@nestjs/common';
 
@@ -101,7 +102,7 @@ export class AnalyticsController {
   @ApiOkResponse({
     description: 'Dashboard analytics retrieved successfully',
   })
-  getAnalytics(): Promise<KpiAnalyticsResponse> {
-    return this.analyticsService.getAnalytics();
+  getAnalytics(@Query() query: KpiQueryDto): Promise<KpiAnalyticsResponse> {
+    return this.analyticsService.getAnalytics(query.department);
   }
 }

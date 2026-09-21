@@ -2,7 +2,6 @@
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
 import { SingleCardKpi } from "@/components/analytics/SingleCardKpi";
-import { CustomProgress } from "@/components/ui/custom-progress";
 import { useAppStore } from "@/store/store";
 import { formatPercentage, formatCurrency } from "@/utils/format";
 
@@ -15,13 +14,12 @@ export function AnalyticsKpiCards({ data }: Props) {
     analytics,
     totalMonthlySpend,
     monthlyLimit,
-    budgetUtilization,
     potentialSavings,
   } = data;
 
   const locale = useAppStore((state) => state.locale);
   const currency = useAppStore((state) => state.currency);
-  const formatAmount = (value: number) =>
+  const formatAmount = (value: number | null) =>
     formatCurrency(value, locale, currency);
 
   return (
@@ -30,7 +28,7 @@ export function AnalyticsKpiCards({ data }: Props) {
         title="Budget Progress"
         value={totalMonthlySpend}
         formatValue={formatAmount}
-        subtitle={`/ ${formatAmount(monthlyLimit)} limit`}
+        subtitle={`/ ${formatAmount(monthlyLimit)} company limit`}
         badge={{
           label: formatPercentage(
             analytics.kpi_trends.budget_change,
@@ -39,15 +37,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           ),
           className: "gradient-blue",
         }}
-      >
-        {/* <CustomProgress
-          value={budgetUtilization}
-          label={formatPercentage(budgetUtilization, locale)}
-          from="#3b82f6"
-          to="#8b5cf6"
-          className="mt-4 h-8"
-        /> */}
-      </SingleCardKpi>
+      />
 
       <SingleCardKpi
         title="Avg Cost / User"
@@ -62,11 +52,11 @@ export function AnalyticsKpiCards({ data }: Props) {
           ),
           className: "gradient-pink",
         }}
-        description="Based on active users"
+        description="Unique users with logged sessions this month"
       />
 
       <SingleCardKpi
-        title="Active Users"
+        title="Unique Active Users"
         value={{
           active: analytics.cost_analytics.active_users,
           total: analytics.cost_analytics.total_users,
@@ -74,13 +64,13 @@ export function AnalyticsKpiCards({ data }: Props) {
         formatValue={({ active, total }) => `${active} / ${total}`}
         badge={{
           label: formatPercentage(
-            analytics.kpi_trends.tools_change,
+            analytics.cost_analytics.total_users > 0 ? analytics.cost_analytics.active_users / analytics.cost_analytics.total_users * 100 : null,
             locale,
-            true,
+            false,
           ),
           className: "gradient-green",
         }}
-        description="SaaS adoption rate"
+        description={`${analytics.cost_analytics.cumulative_tool_users} cumulative tool users (not unique)`}
       />
 
       <SingleCardKpi

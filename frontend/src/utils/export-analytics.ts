@@ -8,9 +8,10 @@ type ExportOptions = {
   exportedAt?: Date;
 };
 
-type Cell = string | number;
+type Cell = string | number | null;
 
 function csvCell(value: Cell): string {
+  if (value === null) return '""';
   if (typeof value === "number") return Number.isFinite(value) ? String(value) : "";
   // Prevent user-controlled names from being interpreted as spreadsheet formulas.
   const safe = /^[\s\u0000-\u001f]*[=+@-]|^[\t\r\n]/.test(value)
@@ -33,21 +34,22 @@ export function buildAnalyticsCsv(
   add("Metadata", "Selected chart range", range);
   add("Metadata", "Data scope", "Current snapshot; selected range applies only to spend evolution, not to KPIs or tools.");
   add("Metadata", "Currency", `${currency} (display setting; no currency conversion)`);
-  add("Metadata", "Historical data", "Spend evolution uses recorded monthly costs; automatic snapshots retain the first observed catalogue cost each month; blank means no records, not zero. Periods include the current month (possibly incomplete). Departments reflect current tool ownership. KPI trends remain company-wide.");
-  add("Metadata", "User counts", "Department active users sum tool usage and may count the same person more than once; total users and budget limit remain company-wide.");
+  add("Metadata", "Historical data", "Spend evolution uses recorded monthly costs; automatic snapshots retain the first observed catalogue cost each month; blank means no records, not zero. Periods include the current month (possibly incomplete). Departments reflect current tool ownership. KPI trends use the selected department; unavailable values are blank.");
+  add("Metadata", "User counts", "Unique active accounts with logged sessions this month on tools in the selected scope. Cumulative tool users are separate. Total users are active accounts in the selected department; budget limit remains company-wide.");
 
   const { cost_analytics: costs, kpi_trends: trends } = data.analytics;
   add("KPI", "Monthly spend", data.totalMonthlySpend, currency, department);
   add("KPI", "Monthly budget limit", data.monthlyLimit, currency, "Company");
   add("KPI", "Budget utilization", data.budgetUtilization, "%", department);
   add("KPI", "Average cost per user", costs.cost_per_user, currency, department);
-  add("KPI", "Active users", costs.active_users, "users", department);
-  add("KPI", "Total users", costs.total_users, "users", "Company");
+  add("KPI", "Unique active users (month to date)", costs.active_users, "users", department);
+  add("KPI", "Cumulative tool users", costs.cumulative_tool_users, "tool users", department);
+  add("KPI", "Total users", costs.total_users, "users", department);
   add("KPI", "Potential monthly savings", data.potentialSavings, currency, department);
   add("KPI", "Unused tools", data.unusedTools.length, "tools", department);
   add("KPI", "Expiring tools", data.expiringTools.length, "tools", department);
   for (const [metric, value] of Object.entries(trends)) {
-    add("KPI trends", metric, value, metric === "cost_per_user_change" ? currency : "%", "Company");
+    add("KPI trends", metric, value, metric === "cost_per_user_change" ? currency : "%", department);
   }
   for (const item of data.departmentCosts) {
     add("Department costs", item.name, item.value, currency, item.name);

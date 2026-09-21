@@ -54,9 +54,9 @@ export function SingleCardKpi<TValue>({
             {badge.label}
           </Badge>
         </div>
-        {/* {description != null && (
+        {description != null && (
           <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        )} */}
+        )}
         {children}
       </CardContent>
     </Card>

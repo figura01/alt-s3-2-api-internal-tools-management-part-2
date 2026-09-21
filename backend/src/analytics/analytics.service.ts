@@ -644,86 +644,43 @@ export class AnalyticsService {
     };
   }
 
-  async getAnalytics(): Promise<KpiAnalyticsResponse> {
-    const MONTHLY_BUDGET_LIMIT = 30_000;
-
-    const [tools, totalUsers] = await Promise.all([
-      this.prisma.tool.findMany({
-        select: {
-          monthlyCost: true,
-          previousMonthCost: true,
-          activeUsersCount: true,
-          createdAt: true,
-        },
-      }),
-
-      this.prisma.user.count(),
+  async getAnalytics(department?: string): Promise<KpiAnalyticsResponse> {
+    const now = new Date();
+    const currentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const previousMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const toolWhere = department ? { ownerDepartment: { name: department } } : {};
+    const userWhere = { status: 'ACTIVE' as const, ...(department ? { department: { name: department } } : {}) };
+    const activeUsersWhere = (gte: Date, lt: Date) => ({
+      ...userWhere,
+      usageLogs: { some: { usageDate: { gte, lt }, sessionCount: { gt: 0 }, tool: toolWhere } },
+    });
+    const [tools, totalUsers, activeUsers, previousUsers, history] = await Promise.all([
+      this.prisma.tool.findMany({ where: toolWhere, select: { id: true, monthlyCost: true, activeUsersCount: true, createdAt: true } }),
+      this.prisma.user.count({ where: userWhere }),
+      this.prisma.user.count({ where: activeUsersWhere(currentMonth, now) }),
+      this.prisma.user.count({ where: activeUsersWhere(previousMonth, currentMonth) }),
+      this.prisma.costTracking.findMany({ where: { month: { gte: previousMonth, lt: currentMonth }, tool: toolWhere }, select: { toolId: true, cost: true } }),
     ]);
-
-    const currentMonthTotal = tools.reduce(
-      (sum, tool) => sum + Number(tool.monthlyCost),
-      0,
-    );
-
-    const previousMonthTotal = tools.reduce(
-      (sum, tool) => sum + Number(tool.previousMonthCost ?? tool.monthlyCost),
-      0,
-    );
-
-    const activeUsers = tools.reduce(
-      (sum, tool) => sum + tool.activeUsersCount,
-      0,
-    );
-
-    const currentCostPerUser =
-      activeUsers > 0 ? currentMonthTotal / activeUsers : 0;
-
-    const previousCostPerUser =
-      activeUsers > 0 ? previousMonthTotal / activeUsers : 0;
-
-    const budgetUtilization =
-      MONTHLY_BUDGET_LIMIT > 0
-        ? (currentMonthTotal / MONTHLY_BUDGET_LIMIT) * 100
-        : 0;
-
-    const budgetChange =
-      previousMonthTotal > 0
-        ? ((currentMonthTotal - previousMonthTotal) / previousMonthTotal) * 100
-        : 0;
-
-    const costPerUserChange =
-      previousCostPerUser > 0 ? currentCostPerUser - previousCostPerUser : 0;
-
+    const current = tools.reduce((sum, tool) => sum + Math.round(Number(tool.monthlyCost) * 100), 0) / 100;
+    const tracked = new Set(history.map(row => row.toolId));
+    const covered = tools.filter(tool => tool.createdAt < currentMonth).every(tool => tracked.has(tool.id));
+    const previous = covered && history.length > 0 ? history.reduce((sum, row) => sum + Math.round(Number(row.cost) * 100), 0) / 100 : null;
+    const costPerUser = activeUsers > 0 ? current / activeUsers : null;
+    const previousCostPerUser = previous !== null && previousUsers > 0 ? previous / previousUsers : null;
+    const budgetChange = previous !== null && previous > 0 ? (current - previous) / previous * 100 : null;
     return {
       budget_overview: {
-        monthly_limit: MONTHLY_BUDGET_LIMIT,
-        current_month_total: this.roundCurrency(currentMonthTotal),
-        previous_month_total: this.roundCurrency(previousMonthTotal),
-
-        budget_utilization: budgetUtilization,
-
-        trend_percentage: budgetChange,
+        monthly_limit: 30000, current_month_total: current, previous_month_total: previous,
+        budget_utilization: current / 30000 * 100, trend_percentage: budgetChange,
       },
-
       kpi_trends: {
-        budget_change: budgetChange,
-        // Pas assez d'historique dans le modèle actuel
-        tools_change: 0,
-
-        // Pas assez d'historique dans le modèle actuel
-        departments_change: 0,
-
-        cost_per_user_change: costPerUserChange,
+        budget_change: budgetChange, tools_change: null, departments_change: null,
+        cost_per_user_change: costPerUser !== null && previousCostPerUser !== null ? costPerUser - previousCostPerUser : null,
       },
-
       cost_analytics: {
-        cost_per_user: currentCostPerUser,
-
-        previous_cost_per_user: previousCostPerUser,
-
-        active_users: activeUsers,
-
-        total_users: totalUsers,
+        cost_per_user: costPerUser, previous_cost_per_user: previousCostPerUser,
+        active_users: activeUsers, total_users: totalUsers,
+        cumulative_tool_users: tools.reduce((sum, tool) => sum + tool.activeUsersCount, 0),
       },
     };
   }
