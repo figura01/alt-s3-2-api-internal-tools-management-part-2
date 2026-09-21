@@ -43,7 +43,7 @@ const chartColors = [
 export function CostAnalyticsSection({ data, range }: Props) {
   const isMobile = useIsMobile();
 
-  const spendEvolution = getSpendEvolutionByRange(data.analytics, range);
+  const spendEvolution = getSpendEvolutionByRange(data.spendHistory, range);
 
   const topExpensiveTools = data.topExpensiveTools.map((tool) => ({
     name: tool.name,
@@ -55,10 +55,11 @@ export function CostAnalyticsSection({ data, range }: Props) {
       <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Monthly Spend Evolution</CardTitle>
+          <p className="text-sm text-muted-foreground">Recorded monthly costs; automatic snapshots use the first observed catalogue cost each month. Missing months remain empty. Current month may be incomplete. Departments reflect current tool ownership.</p>
         </CardHeader>
 
         <CardContent className="h-80">
-          {spendEvolution.length > 0 ? (
+          {spendEvolution.some(point => point.spend !== null) ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={spendEvolution}>
                 <defs>
@@ -84,7 +85,8 @@ export function CostAnalyticsSection({ data, range }: Props) {
                 <Tooltip content={<ChartTooltip />} />
 
                 <Line
-                  type="monotone"
+                  type="linear"
+                  connectNulls={false}
                   dataKey="spend"
                   stroke="url(#spendGradient)"
                   strokeWidth={4}
@@ -98,7 +100,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
           ) : (
             <EmptyState
               title="No spend data available"
-              description="Try another time range."
+              description="No recorded costs for this department and period. Try another filter."
             />
           )}
         </CardContent>

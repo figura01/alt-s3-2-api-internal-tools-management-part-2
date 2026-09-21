@@ -1,3 +1,4 @@
+import { Roles } from '../auth/roles.decorator';
 import {
   Body,
   Controller,
@@ -31,6 +32,7 @@ import type {
 } from './types/tool.types';
 
 @ApiTags('tools')
+@Roles('EMPLOYEE', 'MANAGER', 'ADMIN')
 @Controller('tools')
 export class ToolsController {
   constructor(private readonly toolsService: ToolsService) {}
@@ -67,6 +69,7 @@ export class ToolsController {
   }
 
   @Post()
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Create a new tool',
   })
@@ -87,6 +90,7 @@ export class ToolsController {
   }
 
   @Put(':id')
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Update an existing tool',
   })
@@ -110,6 +114,7 @@ export class ToolsController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Delete a tool',
   })

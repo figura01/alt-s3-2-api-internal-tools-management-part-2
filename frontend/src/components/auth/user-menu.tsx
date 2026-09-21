@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { useLogout } from "@/hooks/use-auth";
+
 import { LogOut, Shield, User, ChevronDown } from "lucide-react";
 
 import {
@@ -18,10 +21,10 @@ import { useAppStore } from "@/store/store";
 
 export function UserMenu() {
   const user = useAppStore((state) => state.currentUser);
-  const logout = useAppStore((state) => state.logout);
+  const logout = useLogout();
 
   if (!user) {
-    return null;
+    return <Button asChild variant="outline"><Link href="/login">Sign in</Link></Button>;
   }
 
   const initials =
@@ -36,13 +39,14 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <div className="flex items-center gap-2">
           <Button
+            aria-label="Account menu"
             variant="ghost"
             size="icon"
             className="bg-transparent w-full gap-2"
           >
             <Avatar className="h-9 w-9 border border-border">
               <AvatarFallback className="bg-gradient-to-br from-violet-500 to-pink-500 text-xs font-semibold text-white">
-                LV
+                {initials}
               </AvatarFallback>
             </Avatar>
             <ChevronDown className="h-4 w-4" />
@@ -61,9 +65,11 @@ export function UserMenu() {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem disabled>
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
+        <DropdownMenuItem asChild>
+          <Link href="/profile">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem disabled>

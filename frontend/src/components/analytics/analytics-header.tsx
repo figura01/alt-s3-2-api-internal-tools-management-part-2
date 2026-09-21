@@ -24,6 +24,7 @@ type Props = {
   onDepartmentChange: (value: string) => void;
 
   departments: Department[];
+  onExport: () => void;
 };
 
 export function AnalyticsHeader({
@@ -32,6 +33,7 @@ export function AnalyticsHeader({
   department,
   onDepartmentChange,
   departments,
+  onExport,
 }: Props) {
   return (
     <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -52,11 +54,11 @@ export function AnalyticsHeader({
           </SelectTrigger>
 
           <SelectContent>
-            <SelectItem value="30d">Last 30 days</SelectItem>
+            <SelectItem value="1m">Current month</SelectItem>
 
-            <SelectItem value="90d">Last 90 days</SelectItem>
+            <SelectItem value="3m">Last 3 months</SelectItem>
 
-            <SelectItem value="1y">Last year</SelectItem>
+            <SelectItem value="1y">Last 12 months</SelectItem>
           </SelectContent>
         </Select>
 
@@ -69,19 +71,16 @@ export function AnalyticsHeader({
             <SelectItem value="all">All departments</SelectItem>
 
             {departments.map((department) => (
-              <SelectItem
-                key={department.id}
-                value={department.name.toLowerCase()}
-              >
+              <SelectItem key={department.id} value={department.name}>
                 {department.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
 
-        <Button variant="outline">
+        <Button variant="outline" onClick={onExport}>
           <Download className="mr-2 h-4 w-4" />
-          Export
+          Export CSV
         </Button>
       </div>
     </section>

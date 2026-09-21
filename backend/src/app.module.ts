@@ -1,3 +1,4 @@
+import { UsersModule } from './users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
@@ -16,8 +17,10 @@ import { DepartmentsModule } from './departments/departments.module';
       isGlobal: true,
     }),
     ToolsModule,
+    UsersModule,
     LoggerModule.forRoot({
       pinoHttp: {
+        redact: ['req.headers.cookie', 'req.headers.authorization', 'res.headers["set-cookie"]'],
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
       },
     }),

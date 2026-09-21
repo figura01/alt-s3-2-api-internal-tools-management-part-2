@@ -110,7 +110,7 @@ export const columns: ColumnDef<Tool>[] = [
     cell: ({ row }) => {
       const tool = row.original;
 
-      return <ToolActions toolId={Number(tool.id)} />;
+      return <ToolActions toolId={tool.id} />;
     },
   },
 ];

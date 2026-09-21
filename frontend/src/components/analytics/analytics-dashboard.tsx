@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useAppStore } from "@/store/store";
+import { downloadAnalyticsCsv } from "@/utils/export-analytics";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
 import { AnalyticsHeader } from "./analytics-header";
@@ -15,8 +18,9 @@ type Props = {
 };
 
 export function AnalyticsDashboard({ data }: Props) {
-  const [range, setRange] = useState("30d");
+  const [range, setRange] = useState("3m");
   const [department, setDepartment] = useState("all");
+  const currency = useAppStore((state) => state.currency);
 
   const filteredData = useMemo(() => {
     return filterAnalyticsDashboardData(data, department);
@@ -30,6 +34,13 @@ export function AnalyticsDashboard({ data }: Props) {
         department={department}
         onDepartmentChange={setDepartment}
         departments={data.departments}
+        onExport={() => {
+          try {
+            downloadAnalyticsCsv(filteredData, { department, range, currency });
+          } catch {
+            toast.error("Unable to export Analytics. Please try again.");
+          }
+        }}
       />
 
       <AnalyticsKpiCards data={filteredData} />

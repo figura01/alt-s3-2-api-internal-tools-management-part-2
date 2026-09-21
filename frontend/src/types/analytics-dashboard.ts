@@ -1,6 +1,5 @@
 import type { Department } from "@/types/department";
 import type { Tool } from "@/types/tool";
-import type { UserTool } from "@/types/user-tool";
 import type { Analytics } from "@/types/analytic";
 
 export type DepartmentCost = {
@@ -9,17 +8,22 @@ export type DepartmentCost = {
 };
 
 export type ToolUsageAnalytics = {
-  id?: number;
+  id?: string;
   name: string;
   users: number;
   monthly_cost: number;
 };
 
+export type SpendHistory = {
+  endMonth: string;
+  points: { month: string; department: string; spend: number; records: number }[];
+};
+
 export type AnalyticsDashboardData = {
+  spendHistory: SpendHistory;
   analytics: Analytics;
   departments: Department[];
   tools: Tool[];
-  userTools: UserTool[];
   totalMonthlySpend: number;
   monthlyLimit: number;
   budgetUtilization: number;

@@ -1,3 +1,4 @@
+import { Roles } from '../auth/roles.decorator';
 import {
   Controller,
   Get,
@@ -16,6 +17,7 @@ export class DepartmentsController {
   constructor(private readonly departmentsService: DepartmentsService) {}
 
   @Post()
+  @Roles('ADMIN')
   create(@Body() createDepartmentDto: CreateDepartmentDto) {
     return this.departmentsService.create(createDepartmentDto);
   }
@@ -31,6 +33,7 @@ export class DepartmentsController {
   }
 
   @Patch(':id')
+  @Roles('ADMIN')
   update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
@@ -39,6 +42,7 @@ export class DepartmentsController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.departmentsService.remove(id);
   }

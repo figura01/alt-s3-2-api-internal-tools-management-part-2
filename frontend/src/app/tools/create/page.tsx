@@ -1,3 +1,4 @@
+import { AccessGate } from "@/components/auth/access-gate";
 import type { Metadata } from "next";
 import HeaderPage from "@/components/header-page";
 import { ToolCreateForm } from "@/components/tools/tool-create-form";
@@ -9,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function NewToolPage() {
   return (
-    <main className="mx-auto max-w-4xl space-y-6 p-6">
+    <AccessGate roles={["ADMIN"]}><main className="mx-auto max-w-4xl space-y-6 p-6">
       <div>
         <HeaderPage
           title="Create New Tool"
@@ -25,6 +26,6 @@ export default function NewToolPage() {
           <ToolCreateForm />
         </CardContent>
       </Card>
-    </main>
+    </main></AccessGate>
   );
 }

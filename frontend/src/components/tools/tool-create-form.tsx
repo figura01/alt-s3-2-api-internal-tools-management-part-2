@@ -11,9 +11,13 @@ export function ToolCreateForm() {
   const createToolMutation = useCreateTool();
 
   async function handleSubmit(values: CreateToolValues) {
-    await createToolMutation.mutateAsync(values);
-    toast.success("Tool created successfully");
-    router.push("/tools");
+    try {
+      await createToolMutation.mutateAsync(values);
+      toast.success("Tool created successfully");
+      router.push("/tools");
+    } catch {
+      toast.error("Unable to create the tool. Check the form and try again.");
+    }
   }
 
   return (

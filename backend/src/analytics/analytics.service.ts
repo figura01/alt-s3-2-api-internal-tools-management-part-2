@@ -22,6 +22,31 @@ import type {
 export class AnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getSpendHistory() {
+    const now = new Date();
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 11, 1));
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const records = await this.prisma.costTracking.findMany({
+      where: { month: { gte: start, lt: end } },
+      select: { month: true, cost: true, tool: { select: { ownerDepartment: { select: { name: true } } } } },
+      orderBy: { month: 'asc' },
+    });
+    const groups = new Map<string, { month: string; department: string; spend: number; records: number }>();
+    for (const record of records) {
+      const month = record.month.toISOString().slice(0, 7);
+      const department = record.tool.ownerDepartment.name;
+      const key = JSON.stringify([month, department]);
+      const point = groups.get(key) ?? { month, department, spend: 0, records: 0 };
+      point.spend += Math.round(Number(record.cost) * 100);
+      point.records++;
+      groups.set(key, point);
+    }
+    return {
+      endMonth: now.toISOString().slice(0, 7),
+      points: [...groups.values()].map(point => ({ ...point, spend: point.spend / 100 })),
+    };
+  }
+
   // =========================
   // DEPARTMENT COSTS
   // =========================
@@ -675,29 +700,26 @@ export class AnalyticsService {
         current_month_total: this.roundCurrency(currentMonthTotal),
         previous_month_total: this.roundCurrency(previousMonthTotal),
 
-        budget_utilization: budgetUtilization.toFixed(1),
+        budget_utilization: budgetUtilization,
 
-        trend_percentage: budgetChange.toFixed(1),
+        trend_percentage: budgetChange,
       },
 
       kpi_trends: {
-        budget_change: `${budgetChange >= 0 ? '+' : ''}${budgetChange.toFixed(0)}%`,
+        budget_change: budgetChange,
+        // Pas assez d'historique dans le modèle actuel
+        tools_change: 0,
 
         // Pas assez d'historique dans le modèle actuel
-        tools_change: '0',
+        departments_change: 0,
 
-        // Pas assez d'historique dans le modèle actuel
-        departments_change: '0',
-
-        cost_per_user_change: `${costPerUserChange >= 0 ? '+' : '-'}€${Math.abs(
-          Math.round(costPerUserChange),
-        )}`,
+        cost_per_user_change: costPerUserChange,
       },
 
       cost_analytics: {
-        cost_per_user: this.roundCurrency(currentCostPerUser),
+        cost_per_user: currentCostPerUser,
 
-        previous_cost_per_user: this.roundCurrency(previousCostPerUser),
+        previous_cost_per_user: previousCostPerUser,
 
         active_users: activeUsers,
 

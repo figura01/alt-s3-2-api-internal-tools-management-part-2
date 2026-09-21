@@ -3,7 +3,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
-  IsUUID,
+
   Matches,
   MaxLength,
   MinLength,
@@ -16,7 +16,7 @@ export class RegisterDto {
     message: 'First name must contain at least 2 characters.',
   })
   @MaxLength(50)
-  @Transform(({ value }: { value: string }) => String(value.trim()))
+  @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value)
   firstName!: string;
 
   @IsString()
@@ -25,12 +25,12 @@ export class RegisterDto {
     message: 'Last name must contain at least 2 characters.',
   })
   @MaxLength(50)
-  @Transform(({ value }: { value: string }) => String(value.trim()))
+  @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value)
   lastName!: string;
 
   @IsEmail()
   @MaxLength(255)
-  @Transform(({ value }: { value: string }) => String(value.trim()))
+  @Transform(({ value }: { value: unknown }) => typeof value === 'string' ? value.trim() : value)
   @IsEmail(
     {},
     {
@@ -48,9 +48,9 @@ export class RegisterDto {
     message:
       'Password must contain at least one uppercase letter, one lowercase letter, one number and one special character.',
   })
-  @Transform(({ value }: { value: string }) => String(value.trim()))
   password!: string;
 
-  @IsUUID()
+  @IsString()
+  @IsNotEmpty()
   departmentId!: string;
 }

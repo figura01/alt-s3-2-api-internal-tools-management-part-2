@@ -1,6 +1,9 @@
-import { Building2, Euro, TrendingUp, Users, Wrench } from "lucide-react";
+"use client";
 
-import { Badge } from "@/components/ui/badge";
+import { useAppStore } from "@/store/store";
+import { formatCurrency, formatPercentage } from "@/utils/format";
+import { Building2, TrendingUp, Users, Wrench } from "lucide-react";
+
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 import { CustomProgress } from "@/components/ui/custom-progress";
@@ -14,7 +17,9 @@ type Kpi = {
   title: string;
   value: number;
   suffix?: string;
-  trend: string;
+  trend: number;
+  format: "currency" | "number";
+  trendFormat: "currency" | "percentage" | "number";
   progress?: number;
   variant: KpiVariant;
 };
@@ -30,39 +35,41 @@ const icons = {
   pink: Users,
 };
 
-function renderBadge(kpi: Kpi) {
+function renderBadge(kpi: Kpi, trend: string) {
   return kpi.variant === "green" ? (
     <CustomBadge angle={90} {...gradients.green}>
-      {kpi.trend}
+      {trend}
     </CustomBadge>
   ) : kpi.variant === "pink" ? (
     <CustomBadge angle={90} {...gradients.pink}>
-      {kpi.trend}
+      {trend}
     </CustomBadge>
   ) : kpi.variant === "blue" ? (
     <CustomBadge angle={90} {...gradients.blue}>
-      {kpi.trend}
+      {trend}
     </CustomBadge>
   ) : kpi.variant === "orange" ? (
     <CustomBadge angle={90} {...gradients.orange}>
-      {kpi.trend}
+      {trend}
     </CustomBadge>
   ) : null;
 }
 
-function formatKpiValue(kpi: Kpi): string {
-  if (kpi.title === "Budget" || kpi.title === "Cost per User") {
-    return `€${kpi.value.toLocaleString()}`;
-  }
-
-  return kpi.value.toLocaleString();
-}
-
 export default function KpiGrid({ kpis }: Props) {
+  const locale = useAppStore((state) => state.locale);
+  const currency = useAppStore((state) => state.currency);
   return (
     <section className="w-full max-w-7xl grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
       {kpis.map((kpi) => {
         const Icon = icons[kpi.variant];
+        const trend =
+          kpi.trendFormat === "currency"
+            ? formatCurrency(kpi.trend, locale, currency, true)
+            : kpi.trendFormat === "percentage"
+              ? formatPercentage(kpi.trend, locale, true)
+              : new Intl.NumberFormat(locale, {
+                  signDisplay: "exceptZero",
+                }).format(kpi.trend);
 
         return (
           <Card
@@ -86,7 +93,9 @@ export default function KpiGrid({ kpis }: Props) {
             <CardContent className="space-y-1">
               <div className="flex items-end gap-2">
                 <p className="text-3xl font-bold tracking-tight">
-                  {formatKpiValue(kpi)}
+                  {kpi.format === "currency"
+                    ? formatCurrency(kpi.value, locale, currency)
+                    : new Intl.NumberFormat(locale).format(kpi.value)}
                 </p>
 
                 {kpi.suffix && (
@@ -99,7 +108,7 @@ export default function KpiGrid({ kpis }: Props) {
                 {kpi.progress !== undefined ? (
                   <CustomProgress
                     value={kpi.progress}
-                    label={`+${kpi.progress}%`}
+                    label={formatPercentage(kpi.progress, locale)}
                     from={
                       kpi.variant === "green"
                         ? gradients.green.from
@@ -125,7 +134,7 @@ export default function KpiGrid({ kpis }: Props) {
                     className="h-5"
                   />
                 ) : (
-                  renderBadge(kpi)
+                  renderBadge(kpi, trend)
                 )}
               </div>
             </CardContent>

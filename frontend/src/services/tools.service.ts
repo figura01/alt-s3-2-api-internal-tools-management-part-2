@@ -133,10 +133,24 @@ export async function getRecentToolsForTable(): Promise<ToolForTable[]> {
 /*                                   CREATE                                   */
 /* -------------------------------------------------------------------------- */
 
+function toolPayload(values: CreateToolValues | UpdateToolValues) {
+  return {
+    name: values.name,
+    description: values.description,
+    vendor: values.vendor,
+    category: values.category,
+    owner_department: values.owner_department,
+    monthly_cost: values.monthly_cost,
+    active_users_count: values.active_users_count,
+    website_url: values.website_url || undefined,
+    icon_url: values.icon_url || undefined,
+  };
+}
+
 export async function createTool(values: CreateToolValues): Promise<Tool> {
   const createdTool = await api<ApiTool>("/tools", {
     method: "POST",
-    body: JSON.stringify(values),
+    body: JSON.stringify(toolPayload(values)),
   });
 
   return normalizeTool(createdTool);
@@ -147,7 +161,8 @@ export async function createTool(values: CreateToolValues): Promise<Tool> {
 /* -------------------------------------------------------------------------- */
 
 export async function updateTool(values: UpdateToolValues): Promise<Tool> {
-  const { id, ...payload } = values;
+  const { id } = values;
+  const payload = { ...toolPayload(values), status: values.status };
 
   const updatedTool = await api<ApiTool>(`/tools/${id}`, {
     method: "PUT",

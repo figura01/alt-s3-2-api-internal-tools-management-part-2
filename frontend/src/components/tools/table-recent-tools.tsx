@@ -12,13 +12,12 @@ import { CustomBadge } from "@/components/ui/custom-badge";
 
 import { CustomImage } from "@/components/custom-image";
 
-import type { ToolForRecentTable } from "@/types/tool";
+import type { ToolForTable } from "@/types/tool";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { gradients } from "@/lib/gradients";
-import { formatDate } from "@/utils/formatDate";
 
 type Props = {
-  tools: ToolForRecentTable[];
+  tools: ToolForTable[];
 };
 
 const TableRecentTools = ({ tools }: Props) => {
@@ -60,15 +59,15 @@ const TableRecentTools = ({ tools }: Props) => {
                 <TableCell>{tool.users}</TableCell>
                 <TableCell>&euro;{formatCurrency(tool.monthly_cost)}</TableCell>
                 <TableCell>
-                  {tool.status === "active" ? (
+                  {tool.status === "ACTIVE" ? (
                     <CustomBadge angle={90} {...gradients.green}>
                       {tool.status}
                     </CustomBadge>
-                  ) : tool.status === "unused" ? (
+                  ) : tool.status === "UNUSED" ? (
                     <CustomBadge angle={90} {...gradients.red}>
                       {tool.status}
                     </CustomBadge>
-                  ) : tool.status === "expiring" ? (
+                  ) : tool.status === "EXPIRING" ? (
                     <CustomBadge angle={90} {...gradients.orange}>
                       {tool.status}
                     </CustomBadge>

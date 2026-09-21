@@ -1,3 +1,5 @@
+import type { AuthUser } from "@/types/auth";
+export type { AuthUser } from "@/types/auth";
 import { api } from "@/lib/api";
 
 export type LoginDto = {
@@ -6,23 +8,14 @@ export type LoginDto = {
 };
 
 export type RegisterDto = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  department: string;
-};
-
-export type AuthUser = {
-  id: number;
-  name: string;
-  email: string;
-  department: string;
-  role: string;
-  status: string;
+  departmentId: string;
 };
 
 export type LoginResponse = {
-  access_token: string;
   user: AuthUser;
 };
 
@@ -40,6 +33,19 @@ export async function register(dto: RegisterDto): Promise<LoginResponse> {
   });
 }
 
-export async function getCurrentUser(): Promise<AuthUser> {
-  return api<AuthUser>("/auth/me");
+export async function getCurrentUser(signal?: AbortSignal): Promise<AuthUser> {
+  return api<AuthUser>("/auth/me", { signal });
+}
+
+export type UpdateProfileDto = {
+  firstName: string;
+  lastName: string;
+};
+
+export function updateProfile(dto: UpdateProfileDto): Promise<AuthUser> {
+  return api<AuthUser>("/auth/me", { method: "PATCH", body: JSON.stringify(dto) });
+}
+
+export function logout(): Promise<{ success: boolean }> {
+  return api("/auth/logout", { method: "POST" });
 }

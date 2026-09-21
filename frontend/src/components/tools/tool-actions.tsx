@@ -19,7 +19,7 @@ import { useCurrentUser } from "@/store/store";
 import { MoreHorizontal } from "lucide-react";
 
 type Props = {
-  toolId: number;
+  toolId: string;
 };
 
 export function ToolActions({ toolId }: Props) {

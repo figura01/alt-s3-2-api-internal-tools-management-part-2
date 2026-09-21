@@ -16,12 +16,16 @@ export function ToolEditForm({ tool }: Props) {
   const updateToolMutation = useUpdateTool();
 
   async function handleSubmit(values: UpdateToolValues) {
-    await updateToolMutation.mutateAsync(values);
+    try {
+      await updateToolMutation.mutateAsync(values);
 
-    toast.success("Tool updated successfully");
+      toast.success("Tool updated successfully");
 
-    router.push("/tools");
-    router.refresh();
+      router.push("/tools");
+      router.refresh();
+    } catch {
+      toast.error("Unable to update the tool. Check the form and try again.");
+    }
   }
 
   return (

@@ -59,6 +59,8 @@ model User {
   // Relations
   // ---------------------------------------------------------------------------
 
+  sessions AuthSession[]
+
   usageLogs UsageLog[]
 
   accessRequests AccessRequest[] @relation("RequestedBy")
@@ -263,4 +265,19 @@ enum ToolStatus {
   INACTIVE
   EXPIRING
   UNUSED
+}
+
+
+model AuthSession {
+  id String @id @default(cuid())
+  userId String @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshHash String @unique @map("refresh_hash") @db.VarChar(64)
+  expiresAt DateTime @map("expires_at") @db.Timestamp(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamp(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("auth_sessions")
 }

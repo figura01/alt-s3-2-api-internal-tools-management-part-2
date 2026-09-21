@@ -13,7 +13,7 @@ export function canDeleteTool(user?: AuthUser | null) {
 }
 
 export function canViewAnalytics(user?: AuthUser | null) {
-  return user?.role === userRole.ADMIN || user?.role === userRole.USER;
+  return user?.role === userRole.ADMIN || user?.role === userRole.MANAGER;
 }
 
 export function canAccessSettings(user?: AuthUser | null) {

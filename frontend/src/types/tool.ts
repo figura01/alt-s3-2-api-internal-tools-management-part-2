@@ -1,3 +1,6 @@
+import type { z } from "zod";
+import type { toolSchema } from "@/schemas/tool.schema";
+
 export const TOOL_STATUSES = [
   "ACTIVE",
   "INACTIVE",
@@ -7,24 +10,7 @@ export const TOOL_STATUSES = [
 
 export type ToolStatus = (typeof TOOL_STATUSES)[number];
 
-export type Tool = {
-  id?: string;
-  name: string;
-  description: string;
-  vendor: string;
-  category: string;
-  owner_department: string;
-  department: string;
-  status: ToolStatus;
-  website_url: string;
-  icon_url: string;
-  monthly_cost: number;
-  previous_month_cost: number;
-  active_users_count: number;
-  created_at: string;
-  updated_at: string;
-  last_update: string;
-};
+export type Tool = z.output<typeof toolSchema>;
 
 export type ApiTool = Partial<{
   id: string | number;

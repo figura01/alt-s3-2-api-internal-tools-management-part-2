@@ -1,3 +1,4 @@
+import { Roles } from '../auth/roles.decorator';
 import { Controller, Get, Query } from '@nestjs/common';
 
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -18,9 +19,16 @@ import type {
 } from './types/analytics.types';
 
 @ApiTags('analytics')
+@Roles('MANAGER', 'ADMIN')
 @Controller('analytics')
 export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
+
+  @Get('spend-history')
+  @ApiOperation({ summary: 'Recorded monthly spending for the last 12 calendar months, including the current month' })
+  getSpendHistory() {
+    return this.analyticsService.getSpendHistory();
+  }
 
   @Get('department-costs')
   @ApiOperation({

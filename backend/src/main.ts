@@ -4,13 +4,18 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 
+import { csrfProtection } from './auth/session-cookie';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
+  app.enableShutdownHooks();
 
+  const frontendOrigin = process.env.FRONTEND_ORIGIN ?? 'http://localhost:3000';
+  app.use(csrfProtection(frontendOrigin));
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: frontendOrigin,
     credentials: true,
   });
 

@@ -9,26 +9,79 @@ import { parseToolStatus } from "@/utils/tools-filters";
 
 type SortOrder = "asc" | "desc";
 
+// type AppStore = {
+//   q: string;
+//   status: ToolStatus | "all";
+//   department: string;
+//   page: number;
+//   pageSize: number;
+//   sort: string | null;
+//   order: SortOrder;
+//   category: string;
+//   currentUser: AuthUser | null;
+//   locale: string;
+//   currency: string;
+
+//   setCurrentUser: (user: AuthUser | null) => void;
+//   logout: () => void;
+//   setQuery: (q: string) => void;
+//   setStatus: (status: ToolStatus | "all") => void;
+//   setDepartment: (department: string) => void;
+//   setCategory: (category: string) => void;
+//   setPage: (page: number) => void;
+//   setPageSize: (pageSize: number) => void;
+//   setSorting: (sort: string | null, order?: SortOrder) => void;
+
+//   resetFilters: () => void;
+//   hydrateFromUrl: (params: URLSearchParams) => void;
+
+//   setLocale: (locale: string) => void;
+//   setCurrency: (currency: string) => void;
+// };
+
 type AppStore = {
+  /* -------------------------------------------------------------------------- */
+  /*                                   AUTH                                     */
+  /* -------------------------------------------------------------------------- */
+
+  currentUser: AuthUser | null;
+  setCurrentUser: (user: AuthUser | null) => void;
+  logout: () => void;
+
+  /* -------------------------------------------------------------------------- */
+  /*                              APP CONFIG                                    */
+  /* -------------------------------------------------------------------------- */
+
+  locale: string;
+  currency: string;
+
+  setLocale: (locale: string) => void;
+  setCurrency: (currency: string) => void;
+
+  /* -------------------------------------------------------------------------- */
+  /*                                   TOOLS                                    */
+  /* -------------------------------------------------------------------------- */
+
   q: string;
   status: ToolStatus | "all";
   department: string;
+  category: string;
+
   page: number;
   pageSize: number;
-  sort: string | null;
-  order: SortOrder;
-  category: string;
-  currentUser: AuthUser | null;
 
-  setCurrentUser: (user: AuthUser | null) => void;
-  logout: () => void;
+  sort: string | null;
+  order: "asc" | "desc";
+
+  setCategory: (category: string) => void;
   setQuery: (q: string) => void;
   setStatus: (status: ToolStatus | "all") => void;
   setDepartment: (department: string) => void;
-  setCategory: (category: string) => void;
+
   setPage: (page: number) => void;
   setPageSize: (pageSize: number) => void;
-  setSorting: (sort: string | null, order?: SortOrder) => void;
+
+  setSorting: (sort: string | null, order?: "asc" | "desc") => void;
 
   resetFilters: () => void;
 
@@ -45,9 +98,47 @@ export const useAppStore = create<AppStore>()(
       currentUser: null,
 
       setCurrentUser: (user) =>
-        set({ currentUser: user }, false, "setCurrentUser"),
+        set(
+          {
+            currentUser: user,
+          },
+          false,
+          "setCurrentUser",
+        ),
 
-      logout: () => set({ currentUser: null }, false, "logout"),
+      logout: () =>
+        set(
+          {
+            currentUser: null,
+          },
+          false,
+          "logout",
+        ),
+
+      /* -------------------------------------------------------------------------- */
+      /*                              APP CONFIG                                    */
+      /* -------------------------------------------------------------------------- */
+
+      locale: "fr-FR",
+      currency: "EUR",
+
+      setLocale: (locale) =>
+        set(
+          {
+            locale,
+          },
+          false,
+          "setLocale",
+        ),
+
+      setCurrency: (currency) =>
+        set(
+          {
+            currency,
+          },
+          false,
+          "setCurrency",
+        ),
 
       /* -------------------------------------------------------------------------- */
       /*                                   TOOLS                                    */
@@ -63,6 +154,7 @@ export const useAppStore = create<AppStore>()(
 
       sort: null,
       order: "asc",
+
       setCategory: (category) =>
         set(
           {
@@ -157,8 +249,10 @@ export const useAppStore = create<AppStore>()(
             status: parseToolStatus(params.get("status")),
             department: params.get("department") ?? "all",
             category: params.get("category") ?? "all",
+
             page: Number(params.get("page") ?? 1),
             pageSize: Number(params.get("pageSize") ?? 10),
+
             sort: params.get("sort"),
             order: params.get("order") === "desc" ? "desc" : "asc",
           },

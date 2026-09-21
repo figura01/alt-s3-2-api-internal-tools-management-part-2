@@ -1,11 +1,11 @@
+import { Prisma } from '@prisma/client';
+
 export const userSelect = {
   id: true,
   name: true,
   email: true,
-  department: true,
   role: true,
   status: true,
-  hire_date: true,
-  created_at: true,
-  updated_at: true,
-} as const;
+  department: { select: { id: true, name: true } },
+  createdAt: true,
+} satisfies Prisma.UserSelect;

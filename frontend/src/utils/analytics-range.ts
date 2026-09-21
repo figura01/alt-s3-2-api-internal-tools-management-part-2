@@ -1,32 +1,15 @@
-// src/utils/analytics-range.ts
+import type { SpendHistory } from "@/types/analytics-dashboard";
 
-import type { Analytics } from "@/types/analytics";
-
-export function getSpendEvolutionByRange(analytics: Analytics, range: string) {
-  const previous = analytics.budget_overview.previous_month_total;
-  const current = analytics.budget_overview.current_month_total;
-
-  if (range === "90d") {
-    return [
-      { label: "Month -2", spend: Math.round(previous * 0.94) },
-      { label: "Previous", spend: previous },
-      { label: "Current", spend: current },
-    ];
-  }
-
-  if (range === "1y") {
-    return [
-      { label: "Jan", spend: Math.round(current * 0.72) },
-      { label: "Mar", spend: Math.round(current * 0.78) },
-      { label: "May", spend: Math.round(current * 0.84) },
-      { label: "Jul", spend: Math.round(current * 0.9) },
-      { label: "Sep", spend: Math.round(current * 0.96) },
-      { label: "Now", spend: current },
-    ];
-  }
-
-  return [
-    { label: "Previous", spend: previous },
-    { label: "Current", spend: current },
-  ];
+export function getSpendEvolutionByRange(history: SpendHistory, range: string) {
+  const months = range === "1y" ? 12 : range === "3m" ? 3 : 1;
+  const [year, month] = history.endMonth.split("-").map(Number);
+  return Array.from({ length: months }, (_, index) => {
+    const label = new Date(Date.UTC(year, month - months + index, 1)).toISOString().slice(0, 7);
+    const points = history.points.filter(point => point.month === label);
+    return {
+      label,
+      spend: points.length ? points.reduce((sum, point) => sum + Math.round(point.spend * 100), 0) / 100 : null,
+      records: points.reduce((sum, point) => sum + point.records, 0),
+    };
+  });
 }

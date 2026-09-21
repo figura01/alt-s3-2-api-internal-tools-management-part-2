@@ -1,8 +1,10 @@
 "use client";
 
+import { useCurrentUser } from "@/store/store";
+import { canViewAnalytics, canAccessSettings } from "@/lib/permissions";
 import Link from "next/link";
 
-import { Settings, BarChart3, LayoutDashboard, Wrench } from "lucide-react";
+import { Settings, BarChart3, LayoutDashboard, Wrench, Users } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -16,6 +18,7 @@ import MobileMenu from "./mobile-menu";
 import { UserMenu } from "@/components/auth/user-menu";
 
 const navItems = [
+  { label: "Users", href: "/users", icon: Users },
   {
     label: "Dashboard",
     href: "/",
@@ -39,6 +42,8 @@ const navItems = [
 ];
 
 export default function AppHeader() {
+  const user = useCurrentUser();
+  const visibleItems = navItems.filter((item) => user && (item.href !== "/analytics" || canViewAnalytics(user)) && (!["/settings", "/users"].includes(item.href) || canAccessSettings(user)));
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -52,7 +57,7 @@ export default function AppHeader() {
           </div>
         </Link>
 
-        <Navbar navItems={navItems} />
+        <Navbar navItems={visibleItems} />
         <Searchbar />
 
         <div className="ml-auto flex items-center gap-2 md:ml-0">
@@ -60,14 +65,16 @@ export default function AppHeader() {
 
           <NotificationButton />
 
-          <Button
+          {user && canAccessSettings(user) && <Button
             asChild
             variant="ghost"
             size="icon"
             className="text-foreground border-0 hover:border-0 hover:bg-transparent hover:text-red-500 dark:hover:bg-transparent"
           >
-            <Settings className="text-gray-500 h-4 w-4 hover:text-red-500" />
-          </Button>
+            <Link href="/settings" aria-label="Settings">
+              <Settings className="text-gray-500 h-4 w-4 hover:text-red-500" />
+            </Link>
+          </Button>}
           {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2">
@@ -110,7 +117,7 @@ export default function AppHeader() {
           </DropdownMenu> */}
           <UserMenu />
 
-          <MobileMenu navItems={navItems} />
+          <MobileMenu navItems={visibleItems} />
         </div>
       </div>
     </header>

@@ -1,10 +1,11 @@
 "use client";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { SingleCardKpi } from "@/components/analytics/SingleCardKpi";
 import { CustomProgress } from "@/components/ui/custom-progress";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { useAppStore } from "@/store/store";
+import { formatPercentage, formatCurrency } from "@/utils/format";
+
 type Props = {
   data: AnalyticsDashboardData;
 };
@@ -12,125 +13,86 @@ type Props = {
 export function AnalyticsKpiCards({ data }: Props) {
   const {
     analytics,
-
     totalMonthlySpend,
-
     monthlyLimit,
-
     budgetUtilization,
-
     potentialSavings,
   } = data;
 
+  const locale = useAppStore((state) => state.locale);
+  const currency = useAppStore((state) => state.currency);
+  const formatAmount = (value: number) =>
+    formatCurrency(value, locale, currency);
+
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Card className="glass-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-sm text-muted-foreground">
-            Budget Progress
-          </CardTitle>
-        </CardHeader>
+      <SingleCardKpi
+        title="Budget Progress"
+        value={totalMonthlySpend}
+        formatValue={formatAmount}
+        subtitle={`/ ${formatAmount(monthlyLimit)} limit`}
+        badge={{
+          label: formatPercentage(
+            analytics.kpi_trends.budget_change,
+            locale,
+            true,
+          ),
+          className: "gradient-blue",
+        }}
+      >
+        {/* <CustomProgress
+          value={budgetUtilization}
+          label={formatPercentage(budgetUtilization, locale)}
+          from="#3b82f6"
+          to="#8b5cf6"
+          className="mt-4 h-8"
+        /> */}
+      </SingleCardKpi>
 
-        <CardContent>
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-3xl font-bold">
-                {formatCurrency(totalMonthlySpend)}
-              </p>
+      <SingleCardKpi
+        title="Avg Cost / User"
+        value={analytics.cost_analytics.cost_per_user}
+        formatValue={formatAmount}
+        badge={{
+          label: formatCurrency(
+            analytics.kpi_trends.cost_per_user_change,
+            locale,
+            currency,
+            true,
+          ),
+          className: "gradient-pink",
+        }}
+        description="Based on active users"
+      />
 
-              <p className="mt-1 text-sm text-muted-foreground">
-                / {formatCurrency(monthlyLimit)} limit
-              </p>
-            </div>
+      <SingleCardKpi
+        title="Active Users"
+        value={{
+          active: analytics.cost_analytics.active_users,
+          total: analytics.cost_analytics.total_users,
+        }}
+        formatValue={({ active, total }) => `${active} / ${total}`}
+        badge={{
+          label: formatPercentage(
+            analytics.kpi_trends.tools_change,
+            locale,
+            true,
+          ),
+          className: "gradient-green",
+        }}
+        description="SaaS adoption rate"
+      />
 
-            <Badge className="gradient-blue text-white">
-              {analytics.kpi_trends.budget_change}
-            </Badge>
-          </div>
-
-          <CustomProgress
-            value={budgetUtilization}
-            label={`${budgetUtilization}%`}
-            from="#3b82f6"
-            to="#8b5cf6"
-            className="mt-4 h-8"
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="glass-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-sm text-muted-foreground">
-            Avg Cost / User
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold">
-              {formatCurrency(analytics.cost_analytics.cost_per_user)}
-            </p>
-
-            <Badge className="gradient-pink text-white">
-              {analytics.kpi_trends.cost_per_user_change}
-            </Badge>
-          </div>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Based on active users
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="glass-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-sm text-muted-foreground">
-            Active Users
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold">
-              {analytics.cost_analytics.active_users}
-              {" / "}
-              {analytics.cost_analytics.total_users}
-            </p>
-
-            <Badge className="gradient-green text-white">
-              {analytics.kpi_trends.tools_change}
-            </Badge>
-          </div>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            SaaS adoption rate
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="glass-card rounded-2xl">
-        <CardHeader>
-          <CardTitle className="text-sm text-muted-foreground">
-            Savings Potential
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div className="flex items-end justify-between">
-            <p className="text-3xl font-bold">
-              {formatCurrency(potentialSavings)}
-            </p>
-
-            <Badge variant="destructive" className="text-white">
-              {data.unusedTools.length} unused
-            </Badge>
-          </div>
-
-          <p className="mt-2 text-sm text-muted-foreground">
-            Potential optimization savings
-          </p>
-        </CardContent>
-      </Card>
+      <SingleCardKpi
+        title="Savings Potential"
+        value={potentialSavings}
+        formatValue={formatAmount}
+        badge={{
+          label: `${data.unusedTools.length} unused`,
+          variant: "destructive",
+        }}
+        description="Potential optimization savings"
+      />
     </section>
   );
 }

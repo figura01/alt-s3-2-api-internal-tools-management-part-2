@@ -10,7 +10,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { useDeleteTool } from "@/hooks/use-tools";
 
 type Props = {
-  toolId: number;
+  toolId: string;
 };
 
 export function DeleteToolAction({ toolId }: Props) {
