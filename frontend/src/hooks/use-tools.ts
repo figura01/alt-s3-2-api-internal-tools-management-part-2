@@ -21,6 +21,15 @@ import type { ToolsResponse } from "@/types/tool";
 
 export const toolsQueryKey = ["tools"] as const;
 
+async function invalidateToolViews(queryClient: ReturnType<typeof useQueryClient>) {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: toolsQueryKey }),
+    queryClient.invalidateQueries({ queryKey: ["dashboard"] }),
+    queryClient.invalidateQueries({ queryKey: ["AnalyticsPage"] }),
+    queryClient.invalidateQueries({ queryKey: ["analytics-kpi"] }),
+  ]);
+}
+
 export const toolQueryKey = (id: string) => ["tools", id] as const;
 
 /* -------------------------------------------------------------------------- */
@@ -61,9 +70,7 @@ export function useCreateTool() {
     mutationFn: createTool,
 
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: toolsQueryKey,
-      });
+      await invalidateToolViews(queryClient);
     },
   });
 }
@@ -80,9 +87,7 @@ export function useUpdateTool() {
 
     onSuccess: async (_, variables) => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: toolsQueryKey,
-        }),
+        invalidateToolViews(queryClient),
 
         queryClient.invalidateQueries({
           queryKey: toolQueryKey(variables.id),
@@ -104,9 +109,7 @@ export function useDeleteTool() {
 
     onSuccess: async (_, id) => {
       await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: toolsQueryKey,
-        }),
+        invalidateToolViews(queryClient),
 
         queryClient.invalidateQueries({
           queryKey: toolQueryKey(id),

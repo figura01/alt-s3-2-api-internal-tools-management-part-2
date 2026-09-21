@@ -19,8 +19,12 @@ export function DeleteToolAction({ toolId }: Props) {
   const deleteToolMutation = useDeleteTool();
 
   async function handleDelete() {
-    await deleteToolMutation.mutateAsync(toolId);
-    setOpen(false);
+    try {
+      await deleteToolMutation.mutateAsync(toolId);
+      setOpen(false);
+    } catch {
+      // The mutation displays the error; keep the dialog open for retry.
+    }
   }
 
   return (
@@ -28,7 +32,6 @@ export function DeleteToolAction({ toolId }: Props) {
       <DropdownMenuItem
         onSelect={(event) => {
           event.preventDefault();
-          console.log("DELETE CLICKED");
           setOpen(true);
         }}
         className="text-destructive focus:text-destructive"
