@@ -11,14 +11,13 @@ import { getRecentToolsForTable, getTools } from "@/services/tools.service";
 import { getAnalytics } from "@/services/analytics.service";
 import { getDepartments } from "@/services/departments.service";
 
-import { Tool } from "@/types/tool";
 
 function DashboardContent() {
   const user = useAppStore((state) => state.currentUser);
   const allowed = canViewAnalytics(user);
   const query = useQuery({ queryKey: ["dashboard", user?.id, allowed], queryFn: async () => {
     const [analytics, tools, departments, recentTools] = await Promise.all([
-      allowed ? getAnalytics() : Promise.resolve(null), getTools(), getDepartments(), getRecentToolsForTable(),
+      allowed ? getAnalytics() : Promise.resolve(null), getTools({ status: "ACTIVE", limit: 1 }), getDepartments(), getRecentToolsForTable(),
     ]);
     return { analytics, tools, departments, recentTools };
   }});
@@ -27,9 +26,7 @@ function DashboardContent() {
   const { analytics, tools, departments, recentTools } = query.data;
   if (!analytics) return <div className="mx-auto max-w-7xl py-6"><HeaderPage title="Internal Tools Dashboard" subtitle="Your organization's software tools" /><RecentsTools tools={recentTools} /></div>;
 
-  const activeToolsCount = tools.data.filter(
-    (tool: Tool) => tool.status === "ACTIVE",
-  ).length;
+  const activeToolsCount = tools.filtered;
 
   const kpis = [
     {
@@ -72,7 +69,7 @@ function DashboardContent() {
     <div className="flex flex-col items-center justify-center gap-6">
       <HeaderPage
         title="Internal Tools Dashboard"
-        subtitle="Monitor and manage tour organization's software tools and expenses"
+        subtitle="Monitor and manage your organization's software tools and expenses"
       />
 
       <KpiGrid kpis={kpis} />

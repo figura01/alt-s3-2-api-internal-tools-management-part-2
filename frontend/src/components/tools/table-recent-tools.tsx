@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Table,
   TableBody,
@@ -13,7 +15,8 @@ import { CustomBadge } from "@/components/ui/custom-badge";
 import { CustomImage } from "@/components/custom-image";
 
 import type { ToolForTable } from "@/types/tool";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrency } from "@/utils/format";
+import { useAppStore } from "@/store/store";
 import { gradients } from "@/lib/gradients";
 
 type Props = {
@@ -21,13 +24,15 @@ type Props = {
 };
 
 const TableRecentTools = ({ tools }: Props) => {
+  const locale = useAppStore(state => state.locale);
+  const currency = useAppStore(state => state.currency);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Recent Tools</CardTitle>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="h-4 w-4" />
-          <span>Last 30 days</span>
+          <span>Latest additions</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -35,7 +40,7 @@ const TableRecentTools = ({ tools }: Props) => {
           <TableHeader>
             <TableRow>
               <TableHead>Tool</TableHead>
-              <TableHead>Departement</TableHead>
+              <TableHead>Department</TableHead>
               <TableHead>Users</TableHead>
               <TableHead>Monthly Cost</TableHead>
               <TableHead>Status</TableHead>
@@ -57,7 +62,7 @@ const TableRecentTools = ({ tools }: Props) => {
                 </TableCell>
                 <TableCell>{tool.owner_department}</TableCell>
                 <TableCell>{tool.users}</TableCell>
-                <TableCell>&euro;{formatCurrency(tool.monthly_cost)}</TableCell>
+                <TableCell>{formatCurrency(tool.monthly_cost, locale, currency)}</TableCell>
                 <TableCell>
                   {tool.status === "ACTIVE" ? (
                     <CustomBadge angle={90} {...gradients.green}>

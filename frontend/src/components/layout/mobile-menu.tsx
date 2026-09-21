@@ -5,6 +5,7 @@ import {
   SheetContent,
   SheetTrigger,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -23,6 +24,7 @@ const MobileMenu = ({ navItems }: { navItems: NavItem[] }) => {
         <Button
           variant="outline"
           size="icon"
+          aria-label="Open navigation menu"
           className="rounded-full md:hidden"
         >
           <Menu className="h-4 w-4" />
@@ -44,8 +46,8 @@ const MobileMenu = ({ navItems }: { navItems: NavItem[] }) => {
                 (item.href !== "/" && pathname.startsWith(item.href));
 
               return (
+                <SheetClose asChild key={item.href}>
                 <Link
-                  key={item.href}
                   href={item.href}
                   className={[
                     "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition",
@@ -56,6 +58,7 @@ const MobileMenu = ({ navItems }: { navItems: NavItem[] }) => {
                 >
                   {item.label}
                 </Link>
+                </SheetClose>
               );
             })}
           </nav>
