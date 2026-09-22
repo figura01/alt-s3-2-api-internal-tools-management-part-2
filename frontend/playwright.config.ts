@@ -26,11 +26,11 @@ export default defineConfig({
       env: { DATABASE_URL: database, PORT: '3101', FRONTEND_ORIGIN: 'http://localhost:3100', JWT_SECRET: 'e2e-only-secret', JWT_EXPIRES_IN: '15m', NODE_ENV: 'test' },
     },
     {
-      command: 'npm run dev -- --port 3100',
+      command: 'npm run build && npm run start -- --port 3100',
       url: 'http://localhost:3100/login',
-      timeout: 120_000,
+      timeout: 180_000,
       reuseExistingServer: false,
-      env: { NEXT_PUBLIC_API_URL: 'http://localhost:3101/api', API_URL: 'http://localhost:3101/api', NEXT_TELEMETRY_DISABLED: '1' },
+      env: { NEXT_PUBLIC_BASE_URL: 'http://localhost:3100', NEXT_PUBLIC_APP_NAME: 'TechCorp', NEXT_PUBLIC_APP_DESCRIPTION: 'Internal tools management', NEXT_PUBLIC_API_URL: 'http://localhost:3101/api', API_URL: 'http://localhost:3101/api', NEXT_TELEMETRY_DISABLED: '1' },
     },
   ],
 });
