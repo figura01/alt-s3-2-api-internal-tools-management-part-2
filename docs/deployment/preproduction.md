@@ -1,67 +1,62 @@
-# Préproduction : images et étapes de déploiement
+# TechCorp sur le VPS existant
 
-Les images sont prêtes à être utilisées avec un hébergeur Docker. Aucun serveur, domaine, compte administrateur ni certificat n’est créé par ces fichiers. L’hébergement et le domaine doivent être choisis avant de déployer.
+Configurations préparées, sans déploiement ni modification du VPS :
 
-## Configuration requise
+| Environnement | Domaine | Projet Compose | Fichier |
+| --- | --- | --- | --- |
+| Production | techcorp.laurent-vuillaume.ovh | techcorp-production | compose.production.yml |
+| Staging | staging.techcorp.laurent-vuillaume.ovh | techcorp-staging | compose.staging.yml |
 
-Prévoir une base PostgreSQL 15 dédiée, un secret JWT aléatoire et une origine HTTPS réservée à la préproduction. Ne pas réutiliser les données, identifiants ni comptes de démonstration du développement.
+Caddy continue de gérer seul HTTPS et les ports 80/443 dans `/srv/vps-infra`. Le portfolio et test-projet-1 conservent leurs services et leur script de déploiement. Aucun Nginx supplémentaire n’est nécessaire.
 
-| Service | Variable | Valeur attendue |
-| --- | --- | --- |
-| API et migration | `DATABASE_URL` | URL PostgreSQL fournie par l’hébergeur |
-| API | `JWT_SECRET` | Secret aléatoire conservé dans le gestionnaire de secrets |
-| API | `JWT_EXPIRES_IN` | `15m` |
-| API | `FRONTEND_ORIGIN` | Origine HTTPS exacte du frontend, sans slash final |
-| API | `PORT` | `3000` par défaut |
-| Frontend, compilation | `NEXT_PUBLIC_BASE_URL` | Origine HTTPS du frontend |
-| Frontend, compilation | `NEXT_PUBLIC_API_URL` | URL publique de l’API, terminée par `/api` |
-| Frontend, exécution | `API_URL` | URL de l’API accessible depuis le conteneur, terminée par `/api` |
+Chaque environnement dispose de son volume PostgreSQL, de son réseau interne et de secrets indépendants. Seuls les services frontend et API rejoignent le réseau existant de Caddy, avec des noms distincts. Aucun port TechCorp ni PostgreSQL n’est publié sur le VPS. Le réseau web est partagé avec les autres projets : il ne constitue pas une isolation entre les services applicatifs. Les bases sont sur des réseaux internes séparés.
 
-Utiliser de préférence la même origine publique : `/api` vers l’API, toutes les autres routes vers le frontend. Le proxy doit préserver le préfixe `/api` et les en-têtes `Cookie` et `Set-Cookie`. Les cookies de production sont `Secure` et nécessitent HTTPS. PostgreSQL doit rester sur un réseau privé.
+## Préparation sur le VPS (à effectuer ultérieurement)
 
-## Construire et démarrer
+1. Placer ce dépôt dans `/srv/apps/techcorp` et sélectionner un commit validé par la CI. Le script ne fait pas de `git pull` implicite.
+2. Repérer le nom réel du réseau Caddy :
 
-Depuis la racine, avec les variables publiques renseignées dans le shell :
+   ```sh
+   docker inspect caddy --format '{{json .NetworkSettings.Networks}}'
+   ```
 
-```sh
-docker build -f backend/Dockerfile.production --target migrate -t techcorp-migrate:staging backend
-docker build -f backend/Dockerfile.production -t techcorp-api:staging backend
-docker build -f frontend/Dockerfile.production \
-  --build-arg NEXT_PUBLIC_BASE_URL="$STAGING_ORIGIN" \
-  --build-arg NEXT_PUBLIC_API_URL="$STAGING_ORIGIN/api" \
-  -t techcorp-frontend:staging frontend
-```
+   La clé Compose `web` peut correspondre à un réseau nommé `vps-infra_web`. Renseigner le nom observé ; ne pas créer un second réseau portant simplement le nom `web`.
+3. Copier les modèles `docs/deployment/staging.env.example` et `production.env.example` vers `.env.staging` et `.env.production` à la racine. Renseigner `CADDY_WEB_NETWORK` dans chacun. Générer quatre secrets indépendants avec `openssl rand -hex 32` : un mot de passe PostgreSQL et un secret JWT par environnement. Conserver le format hexadécimal du mot de passe, inséré dans l’URL PostgreSQL. Restreindre les permissions de ces fichiers (`chmod 600`). Ils sont ignorés par Git et exclus des images Docker.
+4. Préparer les enregistrements DNS des deux noms vers le VPS (ne créer un AAAA que si IPv6 fonctionne). Les certificats seront gérés par Caddy au déploiement.
 
-Les URL publiques sont figées lors de la compilation : reconstruire le frontend en cas de changement de domaine. Le build télécharge la police Inter et nécessite un accès réseau. Les fichiers `.env` locaux et les dépendances locales sont exclus du contexte Docker.
+## Déployer un environnement
 
-Avant le premier démarrage et chaque mise à jour, lancer l’image `techcorp-migrate:staging` avec `DATABASE_URL` injectée par le gestionnaire de secrets. Attendre la réussite de `prisma migrate deploy`, puis démarrer les images API et frontend avec leurs variables respectives. Les images applicatives s’exécutent avec l’utilisateur `node`. Aucune migration ni aucun seed ne se lance implicitement au démarrage de l’application.
-
-Ne pas lancer `prisma db seed` en préproduction : il contient des comptes de démonstration. La création du premier administrateur doit être effectuée séparément, pour un compte identifié, une fois l’environnement choisi.
-
-## Vérifications avant ouverture
-
-- Page `/login` accessible en HTTPS et chargement des ressources statiques réussi.
-- Connexion et déconnexion ; cookies HttpOnly/Secure ; renouvellement de session.
-- Accès ADMIN/MANAGER/EMPLOYEE conformes et refus des mutations sans en-tête CSRF.
-- Création, modification, suppression d’un outil jetable et téléchargement CSV Analytics.
-- Sauvegarde PostgreSQL et restauration testées ; conserver les images précédentes pour un retour applicatif. Un retour d’image n’annule pas une migration SQL : vérifier la compatibilité du schéma avant tout retour arrière.
-
-La CI teste déjà les parcours sur Next.js compilé ; la vérification HTTPS sur l’environnement hébergé reste à effectuer après déploiement.
-
-Références : [sortie standalone de Next.js](https://nextjs.org/docs/app/api-reference/config/next-config-js/output), [conteneurisation Next.js](https://docs.docker.com/guides/nextjs/).
-
-## VPS hébergeant déjà le portfolio
-
-`compose.staging.yml` crée un projet Docker distinct `techcorp-staging`, avec son propre réseau et volume PostgreSQL. Il n’écoute pas sur les ports 80/443 du portfolio. Seuls les ports loopback 3200 (frontend) et 3201 (API) sont publiés ; ils sont modifiables. PostgreSQL n’a aucun port publié.
-
-Copier `docs/deployment/staging.env.example` vers `.env.staging`, choisir le sous-domaine HTTPS et générer deux secrets indépendants avec `openssl rand -hex 32`. Le mot de passe PostgreSQL doit être une valeur hexadécimale pour être utilisable directement dans l’URL de connexion. Vérifier la disponibilité des ports avant le lancement. Ne pas changer ce mot de passe après création du volume sans effectuer aussi sa rotation dans PostgreSQL.
-
-Une fois le VPS et le proxy configurés, lancer explicitement :
+Depuis `/srv/apps/techcorp`, après sauvegarde de la base existante :
 
 ```sh
-docker compose --env-file .env.staging -f compose.staging.yml up -d --build
+./deploy/deploy-techcorp.sh staging
+# Puis, après validation du staging :
+./deploy/deploy-techcorp.sh production
 ```
 
-Compose attend PostgreSQL puis la réussite du conteneur de migration avant de démarrer l’API. Le proxy HTTPS existant devra transmettre `/api` (préfixe conservé) vers `127.0.0.1:3201` et le reste vers `127.0.0.1:3200`. S’il s’exécute lui-même dans Docker, l’intégration réseau doit être adaptée au proxy plutôt que d’utiliser ces adresses loopback. Ne pas ajouter de proxy concurrent ni modifier le site du portfolio. La configuration précise Nginx/Traefik/Caddy reste à déterminer avec celle du VPS.
+Ce script construit les images **sur le VPS** à partir du commit sélectionné : aucune publication GHCR TechCorp n’existe encore. Prévoir les ressources et le temps nécessaires à la compilation Next.js. Le build nécessite le réseau (npm, Google Fonts). Les URL publiques sont figées dans chaque image frontend ; les deux environnements doivent donc avoir des images frontend distinctes.
 
-Ce fichier prépare une préproduction. Pour une production ultérieure, utiliser un projet, des secrets, un domaine et des sauvegardes distincts. Ne pas exécuter `down -v` sur une base à conserver.
+Le script valide la configuration, construit les images, démarre PostgreSQL, applique les migrations Prisma puis met à jour uniquement les services de l’environnement sélectionné. Il s’arrête si la migration échoue. Il ne redémarre ni Caddy ni le portfolio et ne supprime aucune image ou aucun volume. Les migrations sont compatibles avec Prisma 6 verrouillé dans le dépôt. Aucun seed de démonstration n’est lancé. La création du premier administrateur reste une opération distincte à prévoir avant l’ouverture.
+
+Le profil `operations` réserve le service de migration au script. Ne pas remplacer ce script par un simple `docker compose up`, qui ne garantit pas l’application des migrations avant la mise à jour.
+
+## Ajouter les routes Caddy
+
+Après démarrage des services, ajouter les blocs de `deploy/Caddyfile.techcorp` au Caddyfile existant. Ne pas remplacer les blocs du portfolio ou de test-projet-1. On peut activer seulement le bloc staging dans un premier temps.
+
+Depuis `/srv/vps-infra` :
+
+```sh
+docker compose exec -T caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+docker compose exec -T caddy caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+```
+
+Les routes `/api` et `/api/*` vont vers NestJS en conservant leur préfixe ; le reste va vers Next.js. Les cookies HttpOnly/Secure restent limités à leur hôte (aucun domaine parent partagé), et chaque API n’accepte que l’origine de son environnement pour les mutations avec Origin. Le staging doit utiliser uniquement des données de test.
+
+## Vérifier et revenir en arrière
+
+Le script affiche les conteneurs mais cela ne suffit pas à valider le déploiement : vérifier les logs, `/login` en HTTPS, les ressources statiques, connexion/déconnexion et renouvellement de session, droits des rôles, outil jetable et export CSV. Vérifier aussi que le portfolio reste accessible. Les deux images tournent avec l’utilisateur non-root `node`.
+
+Tester les sauvegardes et leur restauration avant une mise en production. Conserver le commit précédent et les images correspondantes. Un retour applicatif ne révoque pas les migrations SQL : vérifier la compatibilité avant de reconstruire le commit précédent. Ne jamais exécuter `down -v` sur une base à conserver. Ne pas réutiliser ou changer arbitrairement le mot de passe d’un volume déjà initialisé : une rotation PostgreSQL doit être coordonnée.
+
+Les comptes, le DNS, les certificats et la validation HTTPS ne sont pas créés ou vérifiés par cette préparation locale.
