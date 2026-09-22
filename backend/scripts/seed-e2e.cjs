@@ -13,6 +13,11 @@ const db = new PrismaClient();
     const data = { name: `E2E ${role}`, firstName: 'E2E', lastName: role, role, status: 'ACTIVE', passwordHash, departmentId: department.id };
     await db.user.upsert({ where: { email: `${role.toLowerCase()}@e2e.test` }, update: data, create: { ...data, email: `${role.toLowerCase()}@e2e.test` } });
   }
+  const admin = await db.user.findUniqueOrThrow({ where: { email: 'admin@e2e.test' } });
+  for (const id of ['e2e-notification-one', 'e2e-notification-two']) {
+    const data = { userId: admin.id, title: id, message: 'E2E inbox fixture', readAt: null };
+    await db.notification.upsert({ where: { id }, create: { id, ...data }, update: data });
+  }
   const tool = await db.tool.upsert({ where: { name: 'E2E Reference' }, update: {}, create: { name: 'E2E Reference', categoryId: category.id, ownerDepartmentId: department.id, monthlyCost: 42, activeUsersCount: 2 } });
   const now = new Date();
   const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));

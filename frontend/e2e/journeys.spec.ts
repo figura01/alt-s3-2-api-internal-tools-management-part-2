@@ -120,3 +120,32 @@ test('admin creates, edits, exports and deletes a tool', async ({ page, context 
   await expect(page.getByRole('row').filter({ hasText: name })).toHaveCount(0);
   expect((await context.request.get(result.url())).status()).toBe(404);
 });
+
+test('notifications persist read state and hide the badge at zero', async ({ page }) => {
+  await login(page);
+  await page.getByRole('button', { name: 'Notifications (2 unread)', exact: true }).click();
+  const list = page.getByRole('list', { name: 'Notification list' });
+  await expect(list.getByText('e2e-notification-one', { exact: true })).toBeVisible();
+  await list.getByRole('button', { name: 'Mark as read', exact: true }).first().click();
+  await expect(page.getByRole('button', { name: 'Notifications (1 unread)', exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Notifications (1 unread)', exact: true }).click();
+  await page.getByRole('button', { name: 'Mark all as read', exact: true }).click();
+  const bell = page.getByRole('button', { name: 'Notifications', exact: true });
+  await expect(bell).toBeVisible();
+  await expect(bell.locator('[data-slot="badge"]')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByRole('button', { name: 'Notifications', exact: true })).toBeVisible();
+});
+
+test('notifications require authentication and cannot cross account boundaries', async ({ page, context }) => {
+  expect((await context.request.get(`${api}/notifications`)).status()).toBe(401);
+  await login(page, 'employee');
+  const response = await context.request.get(`${api}/notifications`);
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toMatchObject({ items: [], unreadCount: 0, total: 0 });
+  expect((await context.request.patch(`${api}/notifications/e2e-notification-one/read`, { headers: csrf })).status()).toBe(404);
+  expect((await context.request.get(`${api}/notifications?offset=-1`)).status()).toBe(400);
+  await page.getByRole('button', { name: 'Notifications', exact: true }).click();
+  await expect(page.getByText('No notifications.', { exact: true })).toBeVisible();
+});

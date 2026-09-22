@@ -1,3 +1,4 @@
+import { NotificationsModule } from './notifications/notifications.module';
 import { UsersModule } from './users/users.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -18,6 +19,7 @@ import { DepartmentsModule } from './departments/departments.module';
     }),
     ToolsModule,
     UsersModule,
+    NotificationsModule,
     LoggerModule.forRoot({
       pinoHttp: {
         redact: ['req.headers.cookie', 'req.headers.authorization', 'res.headers["set-cookie"]'],

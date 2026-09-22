@@ -347,3 +347,11 @@ E2E_DATABASE_URL=postgresql://e2e:e2e@localhost:55432/internal_tools_e2e npm run
 Les ports 3100 et 3101 doivent être libres. Playwright démarre et arrête ses propres serveurs (Next.js compilé en mode production avant le lancement des scénarios). Les variables frontend nécessaires sont définies par Playwright, sans dépendre d’un fichier `.env` local. Le suffixe `_e2e` de la base est obligatoire. Les migrations et fixtures déterministes sont préparées automatiquement ; ne jamais fournir une base métier. Le PostgreSQL local utilise un stockage temporaire, sans volume persistant. Après les tests, depuis la racine : `docker compose -f compose.e2e.yml down`.
 
 Chaque test dispose de cookies isolés ; aucun compte de développement n’est utilisé. Les rapports et traces d’échec sont conservés trois jours en CI et peuvent contenir les cookies des comptes de test. Les tests ne sont pas retentés automatiquement afin de rendre les échecs visibles. Configuration des serveurs : [documentation Playwright](https://playwright.dev/docs/test-webserver).
+
+### Notifications personnelles
+
+La cloche affiche le compteur réel de notifications non lues du compte connecté et disparaît pour les visiteurs déconnectés. La pastille est masquée à zéro (affichage `99+` au-delà de 99). La liste est paginée par 20 et actualisée à l’ouverture, au retour sur la fenêtre et toutes les 60 secondes. Lire une notification reste une action explicite via « Mark as read » ou « Mark all as read » ; ouvrir la liste ne marque rien automatiquement.
+
+Les routes authentifiées `GET /api/notifications?offset=0`, `PATCH /api/notifications/:id/read` et `PATCH /api/notifications/read-all` limitent toutes leurs opérations au compte de la session, quel que soit son rôle. L’état lu est conservé en PostgreSQL. Appliquer la migration `20260923000000_add_notifications` avant de démarrer la nouvelle API.
+
+Cette étape fournit la boîte de réception et l’état lu/non lu. Les événements métier producteurs de notifications et les emails ne sont pas encore implémentés ; aucune alerte fictive ni route publique de création n’est ajoutée. Seules les fixtures E2E créent des notifications de test dans la base dédiée.
