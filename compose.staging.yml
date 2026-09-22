@@ -1,0 +1,64 @@
+name: techcorp-staging
+
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: techcorp
+      POSTGRES_DB: techcorp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U techcorp -d techcorp']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://techcorp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/techcorp
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+      target: runtime
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://techcorp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/techcorp
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_EXPIRES_IN: 15m
+      FRONTEND_ORIGIN: ${STAGING_ORIGIN:?Set STAGING_ORIGIN}
+    ports:
+      - '127.0.0.1:${API_PORT:-3201}:3000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+      args:
+        NEXT_PUBLIC_BASE_URL: ${STAGING_ORIGIN:?Set STAGING_ORIGIN}
+        NEXT_PUBLIC_API_URL: ${STAGING_ORIGIN:?Set STAGING_ORIGIN}/api
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:3000/api
+    ports:
+      - '127.0.0.1:${FRONTEND_PORT:-3200}:3000'
+    depends_on:
+      - api
+
+volumes:
+  database:
