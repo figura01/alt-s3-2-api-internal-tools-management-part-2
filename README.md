@@ -330,3 +330,20 @@ Le workflow `.github/workflows/ci.yml` s’exécute à chaque push, pull request
 La base CI est éphémère ; les identifiants du workflow sont uniquement ceux de cette base de test. Aucun secret de production n’est requis. Le build frontend télécharge Inter via Google Fonts et nécessite un accès réseau. Les avertissements de lint ne bloquent pas la CI, les erreurs oui. Le lint backend historique n’est pas encore un contrôle CI ; les tests et la compilation backend le sont.
 
 Ces contrôles ne déploient pas l’application. Une protection de branche exigeant leur réussite devra être activée séparément dans les paramètres GitHub si souhaitée.
+
+### Tests de bout en bout
+
+Le job `Browser journeys (Chromium)` lance de vrais parcours navigateur avec Next.js, NestJS et une base PostgreSQL dédiée : connexion invalide/valide, cookies HttpOnly, rechargement, déconnexion et révocation serveur, JWT expiré et renouvellement, accès MANAGER/EMPLOYEE, création/modification/suppression ADMIN et téléchargement CSV contenant les données réelles.
+
+Pour les lancer localement, installer les dépendances des deux applications puis :
+
+```sh
+docker compose -f compose.e2e.yml up -d --wait
+cd frontend
+npx playwright install chromium
+E2E_DATABASE_URL=postgresql://e2e:e2e@localhost:55432/internal_tools_e2e npm run test:e2e
+```
+
+Les ports 3100 et 3101 doivent être libres. Playwright démarre et arrête ses propres serveurs (Next.js en mode développement ; la compilation production reste contrôlée dans le job frontend). Le suffixe `_e2e` de la base est obligatoire. Les migrations et fixtures déterministes sont préparées automatiquement ; ne jamais fournir une base métier. Le PostgreSQL local utilise un stockage temporaire, sans volume persistant. Après les tests, depuis la racine : `docker compose -f compose.e2e.yml down`.
+
+Chaque test dispose de cookies isolés ; aucun compte de développement n’est utilisé. Les rapports et traces d’échec sont conservés trois jours en CI et peuvent contenir les cookies des comptes de test. Les tests ne sont pas retentés automatiquement afin de rendre les échecs visibles. Configuration des serveurs : [documentation Playwright](https://playwright.dev/docs/test-webserver).
