@@ -318,3 +318,15 @@ La collecte s’exécute au démarrage puis chaque heure tant que l’API foncti
 `GET /api/analytics?department=Nom` applique le même périmètre aux outils, à l’historique des coûts et aux comptes. Sans paramètre, les KPI couvrent l’entreprise. Les utilisateurs actifs uniques sont les comptes ACTIVE ayant au moins un journal avec `sessionCount > 0` depuis le début du mois UTC ; chaque compte est compté une seule fois. Pour un département, le compte et l’outil utilisé doivent appartenir à ce département. Le total correspond aux comptes ACTIVE de ce périmètre. Le cumul des compteurs d’utilisateurs des outils est fourni séparément (`cumulative_tool_users`).
 
 Le coût par utilisateur est le coût catalogue courant divisé par les utilisateurs uniques observés ce mois-ci. La comparaison utilise les relevés du mois précédent et ses utilisateurs uniques, sur le mois entier : elle n’est pas une comparaison à durée égale. Les valeurs historiques manquantes, les variations sur une base nulle et les coûts par utilisateur sans utilisateur observé sont `null` (— à l’écran, cellule vide dans le CSV). Les variations d’outils et de départements restent indisponibles faute d’historique. La variation budgétaire n’est calculée que si tous les outils du périmètre créés avant le mois courant disposent d’un relevé précédent. Les rattachements départementaux et statuts de compte sont les valeurs actuelles.
+
+
+## Intégration continue
+
+Le workflow `.github/workflows/ci.yml` s’exécute à chaque push, pull request et lancement manuel. Il utilise Node.js 22 et `npm ci` avec les lockfiles de chaque application, selon le [workflow Node.js recommandé par GitHub](https://docs.github.com/en/actions/tutorials/build-and-test-code/nodejs).
+
+- Backend : validation et génération Prisma, application de toutes les migrations sur PostgreSQL 15 vide, tests Jest, test SQL de collecte sur tables temporaires et compilation NestJS.
+- Frontend : `npm test` (sessions, historique/CSV et cache), lint complet et build Next.js incluant la vérification TypeScript.
+
+La base CI est éphémère ; les identifiants du workflow sont uniquement ceux de cette base de test. Aucun secret de production n’est requis. Le build frontend télécharge Inter via Google Fonts et nécessite un accès réseau. Les avertissements de lint ne bloquent pas la CI, les erreurs oui. Le lint backend historique n’est pas encore un contrôle CI ; les tests et la compilation backend le sont.
+
+Ces contrôles ne déploient pas l’application. Une protection de branche exigeant leur réussite devra être activée séparément dans les paramètres GitHub si souhaitée.

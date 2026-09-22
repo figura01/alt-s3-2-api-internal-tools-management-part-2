@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncStoreWithUrl } from "@/hooks/use-sync-store-with-url";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useAppStore } from "@/store/store";
 import { readDisplayPreferences } from "@/lib/display-preferences";
 
@@ -9,12 +9,23 @@ type Props = {
   children: React.ReactNode;
 };
 
-export function AppStoreSyncProvider({ children }: Props) {
+function UrlStoreSync() {
   useSyncStoreWithUrl();
+  return null;
+}
+
+export function AppStoreSyncProvider({ children }: Props) {
   useEffect(() => {
     const preferences = readDisplayPreferences();
     if (preferences) useAppStore.setState(preferences);
   }, []);
 
-  return <>{children}</>;
+  return (
+    <>
+      <Suspense fallback={null}>
+        <UrlStoreSync />
+      </Suspense>
+      {children}
+    </>
+  );
 }
