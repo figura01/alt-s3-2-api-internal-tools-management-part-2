@@ -1,0 +1,21 @@
+# Append these blocks to /srv/vps-infra/Caddyfile.
+# Keep the existing global options, portfolio and test-projet-1 blocks.
+techcorp.laurent-vuillaume.ovh {
+    @api path /api /api/*
+    handle @api {
+        reverse_proxy techcorp-production-api:3000
+    }
+    handle {
+        reverse_proxy techcorp-production-frontend:3000
+    }
+}
+
+staging.techcorp.laurent-vuillaume.ovh {
+    @api path /api /api/*
+    handle @api {
+        reverse_proxy techcorp-staging-api:3000
+    }
+    handle {
+        reverse_proxy techcorp-staging-frontend:3000
+    }
+}

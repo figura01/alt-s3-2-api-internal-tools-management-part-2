@@ -8,6 +8,10 @@ describe('ToolsService', () => {
   let service: ToolsService;
 
   const prismaMock = {
+    $transaction: jest.fn(),
+    $executeRaw: jest.fn(),
+    user: { findMany: jest.fn() },
+    notification: { createMany: jest.fn() },
     tool: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
@@ -15,6 +19,7 @@ describe('ToolsService', () => {
       count: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      aggregate: jest.fn(),
     },
     category: {
       findUnique: jest.fn(),
@@ -23,6 +28,9 @@ describe('ToolsService', () => {
 
   beforeEach(async () => {
     jest.clearAllMocks();
+    prismaMock.$transaction.mockImplementation(fn => fn(prismaMock));
+    prismaMock.tool.aggregate.mockResolvedValue({ _sum: { monthlyCost: 0 } });
+    prismaMock.user.findMany.mockResolvedValue([]);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

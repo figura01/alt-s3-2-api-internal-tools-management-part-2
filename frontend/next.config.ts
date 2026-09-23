@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Standalone is limited to the Docker build; normal builds keep next start.
+  ...(process.env.DOCKER_BUILD === "1" ? { output: "standalone" as const, outputFileTracingRoot: process.cwd() } : {}),
   images: {
     remotePatterns: [
       {

@@ -1,0 +1,74 @@
+name: techcorp-production
+services:
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: techcorp
+      POSTGRES_DB: techcorp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U techcorp -d techcorp
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - database
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+      target: migrate
+    environment:
+      DATABASE_URL: postgresql://techcorp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/techcorp
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: 'no'
+    networks:
+      - database
+    profiles:
+      - operations
+  techcorp-production-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.production
+      target: runtime
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://techcorp:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/techcorp
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_EXPIRES_IN: 15m
+      FRONTEND_ORIGIN: https://techcorp.laurent-vuillaume.ovh
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - web
+      - database
+  techcorp-production-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.production
+      args:
+        NEXT_PUBLIC_BASE_URL: https://techcorp.laurent-vuillaume.ovh
+        NEXT_PUBLIC_API_URL: https://techcorp.laurent-vuillaume.ovh/api
+    restart: unless-stopped
+    environment:
+      API_URL: http://techcorp-production-api:3000/api
+    depends_on:
+      - techcorp-production-api
+    networks:
+      - web
+volumes:
+  database: null
+networks:
+  database:
+    internal: true
+  web:
+    external: true
+    name: ${CADDY_WEB_NETWORK:?Set the existing Caddy network name}

@@ -59,6 +59,7 @@ model User {
   // Relations
   // ---------------------------------------------------------------------------
 
+  notifications Notification[]
   sessions AuthSession[]
 
   usageLogs UsageLog[]
@@ -280,4 +281,29 @@ model AuthSession {
   @@index([userId])
   @@index([expiresAt])
   @@map("auth_sessions")
+}
+
+model Notification {
+  type NotificationType @default(GENERAL)
+  href String?
+  eventKey String? @map("event_key")
+  id String @id @default(cuid())
+  userId String @map("user_id")
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(200)
+  message String @db.Text
+  readAt DateTime? @map("read_at") @db.Timestamp(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
+
+  @@index([userId, createdAt, id])
+  @@unique([userId, eventKey])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  GENERAL
+  TOOL_EXPIRING
+  BUDGET_WARNING
+  BUDGET_EXCEEDED
 }
