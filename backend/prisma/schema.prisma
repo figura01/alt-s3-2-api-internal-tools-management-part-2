@@ -284,6 +284,9 @@ model AuthSession {
 }
 
 model Notification {
+  type NotificationType @default(GENERAL)
+  href String?
+  eventKey String? @map("event_key")
   id String @id @default(cuid())
   userId String @map("user_id")
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -293,6 +296,14 @@ model Notification {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(6)
 
   @@index([userId, createdAt, id])
+  @@unique([userId, eventKey])
   @@index([userId, readAt])
   @@map("notifications")
+}
+
+enum NotificationType {
+  GENERAL
+  TOOL_EXPIRING
+  BUDGET_WARNING
+  BUDGET_EXCEEDED
 }

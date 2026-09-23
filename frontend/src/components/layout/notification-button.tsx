@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
@@ -10,7 +11,7 @@ import { useCurrentUser } from "@/store/store";
 import { api } from "@/lib/api";
 
 type Inbox = {
-  items: { id: string; title: string; message: string; createdAt: string; readAt: string | null }[];
+  items: { id: string; href: string | null; title: string; message: string; createdAt: string; readAt: string | null }[];
   unreadCount: number;
   total: number;
   nextOffset: number | null;
@@ -47,6 +48,7 @@ function UserNotifications({ userId }: { userId: string }) {
         {inbox.isPending ? <p role="status">Loading notifications…</p> : inbox.isError ? <div role="alert">Unable to load notifications. <Button variant="link" onClick={() => inbox.refetch()}>Retry</Button></div> : <>
           {inbox.data.items.length === 0 ? <p>No notifications.</p> : <ul className="max-h-80 space-y-3 overflow-y-auto" aria-label="Notification list">
             {inbox.data.items.map((item) => <li key={item.id} className="border-b pb-3 last:border-0">
+              {item.href && (item.href === "/analytics" || /^\/tools\/[a-zA-Z0-9_-]+$/.test(item.href)) && <Link href={item.href} className="text-sm text-primary underline">View details</Link>}
               <p className={item.readAt ? "font-normal" : "font-semibold"}>{item.title}</p>
               <p className="break-words text-sm text-muted-foreground">{item.message}</p>
               <time dateTime={item.createdAt} className="text-xs text-muted-foreground">{new Date(item.createdAt).toLocaleString()}</time>

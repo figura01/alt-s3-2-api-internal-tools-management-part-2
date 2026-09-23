@@ -1,3 +1,4 @@
+import { MONTHLY_BUDGET } from '../common/budget';
 import { Injectable } from '@nestjs/common';
 
 import { ToolStatus } from '@prisma/client';
@@ -670,8 +671,8 @@ export class AnalyticsService {
     const budgetChange = previous !== null && previous > 0 ? (current - previous) / previous * 100 : null;
     return {
       budget_overview: {
-        monthly_limit: 30000, current_month_total: current, previous_month_total: previous,
-        budget_utilization: current / 30000 * 100, trend_percentage: budgetChange,
+        monthly_limit: MONTHLY_BUDGET, current_month_total: current, previous_month_total: previous,
+        budget_utilization: current / MONTHLY_BUDGET * 100, trend_percentage: budgetChange,
       },
       kpi_trends: {
         budget_change: budgetChange, tools_change: null, departments_change: null,

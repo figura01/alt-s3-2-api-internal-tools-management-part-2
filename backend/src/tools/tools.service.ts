@@ -1,3 +1,4 @@
+import { mutateTool } from '../notifications/notification-events';
 // src/tools/tools.service.ts
 
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -238,7 +239,7 @@ export class ToolsService {
   // =========================
 
   async create(createToolDto: CreateToolDto): Promise<ToolCreateResponse> {
-    const tool = await this.prisma.tool.create({
+    const tool = await mutateTool(this.prisma, 'create', undefined, tx => tx.tool.create({
       data: {
         name: createToolDto.name,
         description: createToolDto.description,
@@ -267,7 +268,7 @@ export class ToolsService {
         category: true,
         ownerDepartment: true,
       },
-    });
+    }));
 
     return {
       id: tool.id,
@@ -306,7 +307,7 @@ export class ToolsService {
   ): Promise<ToolUpdateResponse> {
     await this.ensureToolExists(id);
 
-    const tool = await this.prisma.tool.update({
+    const tool = await mutateTool(this.prisma, 'update', id, tx => tx.tool.update({
       where: {
         id,
       },
@@ -357,7 +358,7 @@ export class ToolsService {
         category: true,
         ownerDepartment: true,
       },
-    });
+    }));
 
     return {
       id: tool.id,
@@ -398,11 +399,11 @@ export class ToolsService {
   async remove(id: string): Promise<ToolDeleteResponse> {
     await this.ensureToolExists(id);
 
-    await this.prisma.tool.delete({
+    await mutateTool(this.prisma, 'delete', id, tx => tx.tool.delete({
       where: {
         id,
       },
-    });
+    }));
 
     return {
       id,

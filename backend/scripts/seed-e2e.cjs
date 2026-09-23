@@ -11,7 +11,8 @@ const db = new PrismaClient();
   const passwordHash = await argon2.hash('E2e-password123!');
   for (const role of ['ADMIN', 'MANAGER', 'EMPLOYEE']) {
     const data = { name: `E2E ${role}`, firstName: 'E2E', lastName: role, role, status: 'ACTIVE', passwordHash, departmentId: department.id };
-    await db.user.upsert({ where: { email: `${role.toLowerCase()}@e2e.test` }, update: data, create: { ...data, email: `${role.toLowerCase()}@e2e.test` } });
+    const user = await db.user.upsert({ where: { email: `${role.toLowerCase()}@e2e.test` }, update: data, create: { ...data, email: `${role.toLowerCase()}@e2e.test` } });
+    await db.notification.deleteMany({ where: { userId: user.id } });
   }
   const admin = await db.user.findUniqueOrThrow({ where: { email: 'admin@e2e.test' } });
   for (const id of ['e2e-notification-one', 'e2e-notification-two']) {
