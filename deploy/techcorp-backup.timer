@@ -1,0 +1,10 @@
+[Unit]
+Description=Run TechCorp backups nightly at 03:15 Europe/Paris
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Europe/Paris
+Persistent=true
+Unit=techcorp-backup.service
+
+[Install]
+WantedBy=timers.target
