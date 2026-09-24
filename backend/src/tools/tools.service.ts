@@ -333,6 +333,14 @@ export class ToolsService {
           websiteUrl: updateToolDto.website_url,
         }),
 
+        ...(updateToolDto.icon_url !== undefined && {
+          iconUrl: updateToolDto.icon_url,
+        }),
+
+        ...(updateToolDto.active_users_count !== undefined && {
+          activeUsersCount: updateToolDto.active_users_count,
+        }),
+
         ...(updateToolDto.category !== undefined && {
           category: {
             connect: {

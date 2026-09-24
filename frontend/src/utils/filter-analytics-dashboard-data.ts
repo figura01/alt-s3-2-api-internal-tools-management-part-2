@@ -4,6 +4,7 @@ import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
 
 import {
   getCostByDepartment,
+  getTotalMonthlySpend,
   getExpiringTools,
   getLeastUsedTools,
   getMostUsedTools,
@@ -24,10 +25,7 @@ export function filterAnalyticsDashboardData(
     (tool) => tool.owner_department === department,
   );
 
-  const totalMonthlySpend = filteredTools.reduce(
-    (sum, tool) => sum + tool.monthly_cost,
-    0,
-  );
+  const totalMonthlySpend = getTotalMonthlySpend(filteredTools);
 
   const budgetUtilization =
     data.monthlyLimit > 0 ? (totalMonthlySpend / data.monthlyLimit) * 100 : 0;
