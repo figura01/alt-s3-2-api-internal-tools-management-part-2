@@ -1,6 +1,6 @@
 # TechCorp sur le VPS existant
 
-Configurations préparées, sans déploiement ni modification du VPS :
+Staging et production déployés. Voir le [compte rendu du 24 septembre 2026](../qa/2026-09-24-production.md) pour les contrôles, sauvegardes et limites constatées. Les instructions ci-dessous restent la procédure de déploiement :
 
 | Environnement | Domaine | Projet Compose | Fichier |
 | --- | --- | --- | --- |

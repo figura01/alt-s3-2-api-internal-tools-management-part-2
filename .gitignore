@@ -63,3 +63,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env.staging
 
 .env.production
+
+# Personal access memo (contains passwords)
+.private/
