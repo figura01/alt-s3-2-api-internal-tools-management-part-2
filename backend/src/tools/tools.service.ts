@@ -1,3 +1,4 @@
+import { toToolResponse, toToolCreateResponse } from './tool.mapper';
 import { mutateTool } from '../notifications/notification-events';
 // src/tools/tools.service.ts
 
@@ -134,38 +135,7 @@ export class ToolsService {
     ]);
 
     return {
-      data: tools.map((tool) => ({
-        id: tool.id,
-
-        name: tool.name,
-
-        description: tool.description,
-
-        vendor: tool.vendor,
-
-        category: tool.category.name,
-
-        monthly_cost: Number(tool.monthlyCost),
-
-        previous_month_cost:
-          tool.previousMonthCost !== null
-            ? Number(tool.previousMonthCost)
-            : null,
-
-        owner_department: tool.ownerDepartment.name,
-
-        status: tool.status,
-
-        website_url: tool.websiteUrl,
-
-        icon_url: tool.iconUrl,
-
-        active_users_count: tool.activeUsersCount,
-
-        created_at: tool.createdAt,
-
-        updated_at: tool.updatedAt,
-      })),
+      data: tools.map(toToolResponse),
 
       total,
 
@@ -202,36 +172,7 @@ export class ToolsService {
       });
     }
 
-    return {
-      id: tool.id,
-
-      name: tool.name,
-
-      description: tool.description,
-
-      vendor: tool.vendor,
-
-      website_url: tool.websiteUrl,
-
-      icon_url: tool.iconUrl,
-
-      category: tool.category.name,
-
-      monthly_cost: Number(tool.monthlyCost),
-
-      previous_month_cost:
-        tool.previousMonthCost !== null ? Number(tool.previousMonthCost) : null,
-
-      owner_department: tool.ownerDepartment.name,
-
-      status: tool.status,
-
-      active_users_count: tool.activeUsersCount,
-
-      created_at: tool.createdAt,
-
-      updated_at: tool.updatedAt,
-    };
+    return toToolResponse(tool);
   }
 
   // =========================
@@ -270,31 +211,7 @@ export class ToolsService {
       },
     }));
 
-    return {
-      id: tool.id,
-
-      name: tool.name,
-
-      description: tool.description,
-
-      vendor: tool.vendor,
-
-      category: tool.category.name,
-
-      monthly_cost: Number(tool.monthlyCost),
-
-      owner_department: tool.ownerDepartment.name,
-
-      status: tool.status,
-
-      website_url: tool.websiteUrl,
-
-      icon_url: tool.iconUrl,
-
-      active_users_count: tool.activeUsersCount,
-
-      created_at: tool.createdAt,
-    };
+    return toToolCreateResponse(tool);
   }
 
   // =========================
@@ -368,36 +285,7 @@ export class ToolsService {
       },
     }));
 
-    return {
-      id: tool.id,
-
-      name: tool.name,
-
-      description: tool.description,
-
-      vendor: tool.vendor,
-
-      category: tool.category.name,
-
-      monthly_cost: Number(tool.monthlyCost),
-
-      previous_month_cost:
-        tool.previousMonthCost !== null ? Number(tool.previousMonthCost) : null,
-
-      owner_department: tool.ownerDepartment.name,
-
-      status: tool.status,
-
-      website_url: tool.websiteUrl,
-
-      icon_url: tool.iconUrl,
-
-      active_users_count: tool.activeUsersCount,
-
-      created_at: tool.createdAt,
-
-      updated_at: tool.updatedAt,
-    };
+    return toToolResponse(tool);
   }
 
   // =========================

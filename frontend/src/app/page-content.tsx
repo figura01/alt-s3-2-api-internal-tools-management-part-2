@@ -4,7 +4,6 @@ import { useAppStore } from "@/store/store";
 import { canViewAnalytics } from "@/lib/permissions";
 import { AccessGate } from "@/components/auth/access-gate";
 import HeaderPage from "@/components/header-page";
-// import SectionKPIs from "@/components/dashboard/kpis/section-kpis";
 import KpiGrid from "@/components/kpis/kpi-grid";
 import RecentsTools from "@/components/tools/table-recent-tools";
 import { getRecentToolsForTable, getTools } from "@/services/tools.service";
