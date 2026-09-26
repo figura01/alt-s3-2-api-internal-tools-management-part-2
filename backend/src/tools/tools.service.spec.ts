@@ -118,6 +118,30 @@ describe('ToolsService', () => {
     });
   });
 
+  it('persists edited user counts (including zero) and icon URLs', async () => {
+    const existing = {
+      id: 'tool-1', name: 'Slack', monthlyCost: 8,
+      category: { name: 'Communication' },
+      ownerDepartment: { name: 'Engineering' },
+      status: 'ACTIVE', activeUsersCount: 25,
+      iconUrl: 'https://example.com/old.png', previousMonthCost: null,
+    };
+    prismaMock.tool.findUnique.mockResolvedValue(existing);
+    prismaMock.tool.update.mockImplementation(async ({ data }) => ({ ...existing, ...data }));
+
+    for (const count of [12, 0]) {
+      const result = await service.update('tool-1', {
+        active_users_count: count, icon_url: 'https://example.com/new.png',
+      });
+      expect(result.active_users_count).toBe(count);
+      expect(result.icon_url).toBe('https://example.com/new.png');
+    }
+
+    const unchanged = await service.update('tool-1', { name: 'New name' });
+    expect(unchanged.active_users_count).toBe(25);
+    expect(unchanged.icon_url).toBe(existing.iconUrl);
+  });
+
   it('should throw NotFoundException when updating unknown tool', async () => {
     prismaMock.tool.findUnique.mockResolvedValue(null);
 

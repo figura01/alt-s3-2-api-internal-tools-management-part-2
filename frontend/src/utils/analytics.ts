@@ -1,9 +1,8 @@
 import type { Tool } from "@/types/tool";
 
 export function getTotalMonthlySpend(tools: Tool[]): number {
-  return tools.reduce((total, tool) => {
-    return total + tool.monthly_cost;
-  }, 0);
+  // Match API KPI totals: add amounts in cents before converting back.
+  return tools.reduce((total, tool) => total + Math.round(tool.monthly_cost * 100), 0) / 100;
 }
 
 export function getAverageCostPerTool(tools: Tool[]): number {
@@ -30,14 +29,14 @@ export function getCostByDepartment(tools: Tool[]) {
   const departmentCosts = tools.reduce<Record<string, number>>((acc, tool) => {
     const department = tool.owner_department || "Unknown";
 
-    acc[department] = (acc[department] ?? 0) + tool.monthly_cost;
+    acc[department] = (acc[department] ?? 0) + Math.round(tool.monthly_cost * 100);
 
     return acc;
   }, {});
 
   return Object.entries(departmentCosts).map(([name, value]) => ({
     name,
-    value,
+    value: value / 100,
   }));
 }
 
@@ -63,7 +62,5 @@ export function getMostUsedTools(tools: Tool[], limit = 5) {
 }
 
 export function getPotentialSavings(tools: Tool[]): number {
-  return getUnusedTools(tools).reduce((total, tool) => {
-    return total + tool.monthly_cost;
-  }, 0);
+  return getTotalMonthlySpend(getUnusedTools(tools));
 }
