@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardTitle } from "@/components/ui/card";
+import { KpiCard } from "@/components/kpis/kpi-card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -31,34 +32,33 @@ export function SingleCardKpi<TValue>({
   );
 
   return (
-    <Card className="glass-card rounded-2xl">
-      <CardHeader>
+    <KpiCard
+      title={
         <CardTitle className="text-sm text-muted-foreground">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex flex-col items-start ">
-          {subtitle != null ? (
-            <div className="flex flex-row items-center">
-              {formattedValue}
-              <p className="mt-2 ml-1 text-sm text-muted-foreground">
-                {subtitle}
-              </p>
-            </div>
-          ) : (
-            formattedValue
-          )}
-          <Badge
-            variant={badge.variant}
-            className={cn("text-white", badge.className)}
-          >
-            {badge.label}
-          </Badge>
-        </div>
-        {description != null && (
-          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+      }
+    >
+      <div className="flex flex-col items-start ">
+        {subtitle != null ? (
+          <div className="flex flex-row items-center">
+            {formattedValue}
+            <p className="mt-2 ml-1 text-sm text-muted-foreground">
+              {subtitle}
+            </p>
+          </div>
+        ) : (
+          formattedValue
         )}
-        {children}
-      </CardContent>
-    </Card>
+        <Badge
+          variant={badge.variant}
+          className={cn("text-white", badge.className)}
+        >
+          {badge.label}
+        </Badge>
+      </div>
+      {description != null && (
+        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
+      )}
+      {children}
+    </KpiCard>
   );
 }
