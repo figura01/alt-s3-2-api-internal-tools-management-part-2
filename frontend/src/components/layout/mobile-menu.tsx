@@ -1,4 +1,4 @@
-import { Menu, Search } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -7,7 +7,7 @@ import {
   SheetTitle,
   SheetClose,
 } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
+import { Searchbar } from "./searchbar";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,7 +25,7 @@ const MobileMenu = ({ navItems }: { navItems: NavItem[] }) => {
           variant="outline"
           size="icon"
           aria-label="Open navigation menu"
-          className="rounded-full md:hidden"
+          className="rounded-full lg:hidden"
         >
           <Menu className="h-4 w-4" />
         </Button>
@@ -34,10 +34,7 @@ const MobileMenu = ({ navItems }: { navItems: NavItem[] }) => {
       <SheetContent side="right" className="w-80 p-6">
         <SheetTitle className="text-lg font-semibold">Menu</SheetTitle>
         <div className="mt-8 space-y-6">
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search tools, metrics..." className="pl-9" />
-          </div>
+          <Searchbar />
 
           <nav className="grid gap-2">
             {navItems.map((item) => {

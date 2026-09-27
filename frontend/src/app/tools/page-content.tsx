@@ -42,12 +42,12 @@ function PageContent() {
       <SearchResultLabel />
 
       <Card className="w-full">
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col items-start gap-4 xl:flex-row xl:items-center xl:justify-between">
           <CardTitle>
             <h1 className="text-2xl font-bold">Tools List</h1>
           </CardTitle>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <StatusFilter />
 
             <DepartmentFilter departments={departments} />
