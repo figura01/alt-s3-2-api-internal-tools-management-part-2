@@ -1,3 +1,5 @@
+import { NotificationsController } from '../../notifications/notifications.controller';
+import { NotificationsService } from '../../notifications/notifications.service';
 import { ConfigService } from '@nestjs/config';
 import { SESSION_COOKIE } from '../session-cookie';
 import { UsersController } from '../../users/users.controller';
@@ -24,9 +26,13 @@ describe('API role permissions', () => {
   let app: INestApplication;
   const prisma = { authSession: { findUnique: jest.fn() }, user: { findUnique: jest.fn() } };
   const jwt = new JwtService({ secret: process.env.JWT_SECRET ?? 'dev-secret' });
-  const methods = ['findAll', 'findOne', 'create', 'update', 'remove', 'getAnalytics', 'getSpendHistory', 'getDepartmentCosts', 'getExpensiveTools', 'getToolsByCategory', 'getLowUsageTools', 'getVendorSummary'];
+  const methods = ['list', 'markRead', 'markAllRead', 'findAll', 'findOne', 'create', 'update', 'remove', 'getAnalytics', 'getSpendHistory', 'getDepartmentCosts', 'getExpensiveTools', 'getToolsByCategory', 'getLowUsageTools', 'getVendorSummary'];
   const service = Object.fromEntries(methods.map((name) => [name, jest.fn().mockResolvedValue({ ok: true })]));
   const routes = [
+    ...['/categories', '/categories/category-1'].map(path => ['get', path, ['EMPLOYEE', 'MANAGER', 'ADMIN']]),
+    ['get', '/notifications', ['EMPLOYEE', 'MANAGER', 'ADMIN']],
+    ['patch', '/notifications/read-all', ['EMPLOYEE', 'MANAGER', 'ADMIN']],
+    ['patch', '/notifications/notification-1/read', ['EMPLOYEE', 'MANAGER', 'ADMIN']],
     ["get", "/users", ["ADMIN"]],
     ["patch", "/users/user-2", ["ADMIN"]],
     ['get', '/tools', ['EMPLOYEE', 'MANAGER', 'ADMIN']],
@@ -40,9 +46,9 @@ describe('API role permissions', () => {
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [PassportModule],
-      controllers: [UsersController, ToolsController, AnalyticsController, DepartmentsController, CategoriesController],
+      controllers: [NotificationsController, UsersController, ToolsController, AnalyticsController, DepartmentsController, CategoriesController],
       providers: [JwtStrategy, { provide: ConfigService, useValue: { getOrThrow: () => process.env.JWT_SECRET ?? 'dev-secret' } }, { provide: APP_GUARD, useClass: RolesGuard }, { provide: PrismaService, useValue: prisma },
-        ...[UsersService, ToolsService, AnalyticsService, DepartmentsService, CategoriesService].map((provide) => ({ provide, useValue: service }))],
+        ...[NotificationsService, UsersService, ToolsService, AnalyticsService, DepartmentsService, CategoriesService].map((provide) => ({ provide, useValue: service }))],
     }).compile();
     app = module.createNestApplication();
     await app.init();
@@ -72,6 +78,24 @@ describe('API role permissions', () => {
   });
   it('rejects an expired token', async () => {
     await request(app.getHttpServer()).get('/tools').set('Cookie', `${SESSION_COOKIE}=${jwt.sign({ sub: 'user-1', sid: 'session-1', role: 'ADMIN' }, { expiresIn: -1 })}`).expect(401);
+  });
+  it.each([
+    null,
+    { userId: 'user-1', revokedAt: new Date(), expiresAt: new Date(Date.now() + 60000), user: { role: 'ADMIN', status: 'ACTIVE' } },
+    { userId: 'another-user', revokedAt: null, expiresAt: new Date(Date.now() + 60000), user: { role: 'ADMIN', status: 'ACTIVE' } },
+    { userId: 'user-1', revokedAt: null, expiresAt: new Date(0), user: { role: 'ADMIN', status: 'ACTIVE' } },
+  ])('rejects missing, revoked, foreign or expired sessions', async session => {
+    prisma.authSession.findUnique.mockResolvedValue(session);
+    await request(app.getHttpServer()).get('/notifications')
+      .set('Cookie', `${SESSION_COOKIE}=${jwt.sign({ sub: 'user-1', sid: 'session-1', role: 'ADMIN' })}`).expect(401);
+    expect(service.list).not.toHaveBeenCalled();
+  });
+  it('takes notification ownership from the authenticated session, not supplied userId', async () => {
+    prisma.user.findUnique.mockResolvedValue({ role: 'EMPLOYEE', status: 'ACTIVE' });
+    await request(app.getHttpServer()).patch('/notifications/notification-1/read?userId=victim')
+      .set('Cookie', `${SESSION_COOKIE}=${jwt.sign({ sub: 'user-1', sid: 'session-1', role: 'EMPLOYEE' })}`)
+      .send({ userId: 'victim' }).expect(200);
+    expect(service.markRead).toHaveBeenCalledWith('user-1', 'notification-1');
   });
   it('keeps the department list accessible for registration', async () => {
     await request(app.getHttpServer()).get('/departments').expect(200);
