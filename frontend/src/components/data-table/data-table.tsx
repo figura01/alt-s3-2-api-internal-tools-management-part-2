@@ -166,7 +166,7 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span>Rows per page</span>
 
@@ -191,7 +191,7 @@ export function DataTable<TData, TValue>({
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">
             Page {page} of {pageCount || 1}
           </span>

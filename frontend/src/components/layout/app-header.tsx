@@ -46,7 +46,7 @@ export default function AppHeader() {
   const visibleItems = navItems.filter((item) => user && (item.href !== "/analytics" || canViewAnalytics(user)) && (!["/settings", "/users"].includes(item.href) || canAccessSettings(user)));
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-2 px-4 sm:gap-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <Logo />
 
@@ -58,9 +58,9 @@ export default function AppHeader() {
         </Link>
 
         <Navbar navItems={visibleItems} />
-        <Searchbar />
+        <div className="hidden min-w-0 flex-1 lg:block"><Searchbar /></div>
 
-        <div className="ml-auto flex items-center gap-2 md:ml-0">
+        <div className="ml-auto flex items-center gap-1 sm:gap-2 lg:ml-0">
           <ThemeToggle />
 
           <NotificationButton />
@@ -69,7 +69,7 @@ export default function AppHeader() {
             asChild
             variant="ghost"
             size="icon"
-            className="text-foreground border-0 hover:border-0 hover:bg-transparent hover:text-red-500 dark:hover:bg-transparent"
+            className="hidden lg:inline-flex text-foreground border-0 hover:border-0 hover:bg-transparent hover:text-red-500 dark:hover:bg-transparent"
           >
             <Link href="/settings" aria-label="Settings">
               <Settings className="text-gray-500 h-4 w-4 hover:text-red-500" />

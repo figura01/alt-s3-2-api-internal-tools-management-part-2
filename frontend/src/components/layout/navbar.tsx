@@ -10,7 +10,7 @@ const Navbar = ({ navItems }: { navItems: NavItem[] }) => {
   const pathname = usePathname();
 
   return (
-    <nav className="hidden items-center gap-1 p-1 md:flex">
+    <nav className="hidden items-center gap-1 p-1 lg:flex">
       {navItems.map((item) => {
         const isActive =
           pathname === item.href ||
