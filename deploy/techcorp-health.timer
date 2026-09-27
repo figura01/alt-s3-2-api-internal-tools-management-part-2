@@ -1,0 +1,11 @@
+[Unit]
+Description=Check TechCorp every hour
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=120
+Persistent=true
+Unit=techcorp-health.service
+
+[Install]
+WantedBy=timers.target

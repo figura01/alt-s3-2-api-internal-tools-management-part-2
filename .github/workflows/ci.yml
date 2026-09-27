@@ -13,6 +13,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  operations:
+    name: Backup and health diagnostic tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python3 -B -m unittest discover -s deploy -p 'test_*.py'
+
   backend:
     name: Backend tests and build
     runs-on: ubuntu-latest
