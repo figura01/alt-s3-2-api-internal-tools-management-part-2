@@ -129,9 +129,9 @@ export class ToolsService {
 
       this.prisma.tool.count(),
 
-      this.prisma.tool.count({
-        where,
-      }),
+      Object.keys(where).length > 0
+        ? this.prisma.tool.count({ where })
+        : Promise.resolve(null),
     ]);
 
     return {
@@ -139,7 +139,7 @@ export class ToolsService {
 
       total,
 
-      filtered,
+      filtered: filtered ?? total,
 
       page,
 
