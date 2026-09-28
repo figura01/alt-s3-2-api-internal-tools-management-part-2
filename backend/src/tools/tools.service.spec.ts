@@ -45,6 +45,24 @@ describe('ToolsService', () => {
     service = module.get<ToolsService>(ToolsService);
   });
 
+  it.each([{}, { query: '   ', page: 2, limit: 10 }])('counts the unfiltered catalogue only once: %p', async query => {
+    prismaMock.tool.findMany.mockResolvedValue([]);
+    prismaMock.tool.count.mockResolvedValue(25);
+    const result = await service.findAll(query);
+    expect(result).toMatchObject({ total: 25, filtered: 25 });
+    expect(prismaMock.tool.count).toHaveBeenCalledTimes(1);
+    expect(prismaMock.tool.count).toHaveBeenCalledWith();
+  });
+
+  it.each([{ query: 'Slack' }, { department: 'Engineering' }, { category: 'Tools' }, { status: 'ACTIVE' as const }, { min_cost: 0 }, { max_cost: 0 }])('preserves a separate count when filters are applied: %p', async query => {
+    prismaMock.tool.findMany.mockResolvedValue([]);
+    prismaMock.tool.count.mockResolvedValueOnce(25).mockResolvedValueOnce(0);
+    const result = await service.findAll(query);
+    expect(result).toMatchObject({ total: 25, filtered: 0 });
+    expect(prismaMock.tool.count).toHaveBeenCalledTimes(2);
+    expect(prismaMock.tool.count.mock.calls[1][0].where).not.toEqual({});
+  });
+
   it('should return a tool by id', async () => {
     prismaMock.tool.findUnique.mockResolvedValue({
       id: 'tool-1',
