@@ -16,6 +16,25 @@ import type { Tool } from "@/types/tool";
 
 import { gradients } from "@/lib/gradients";
 import { ToolActions } from "@/components/tools/tool-actions";
+import { useAppStore } from "@/store/store";
+import { formatCurrency } from "@/utils/format";
+
+function MonthlyCostCell({ value }: { value: number }) {
+  const locale = useAppStore((state) => state.locale);
+  const currency = useAppStore((state) => state.currency);
+  return <span className="whitespace-nowrap">{formatCurrency(value, locale, currency)}</span>;
+}
+
+function LastUpdateCell({ value }: { value?: string }) {
+  const locale = useAppStore((state) => state.locale);
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return <span>—</span>;
+  return (
+    <time dateTime={value} title={value} className="whitespace-nowrap">
+      {new Intl.DateTimeFormat(locale, { dateStyle: "short", timeZone: "Europe/Paris" }).format(date)}
+    </time>
+  );
+}
 
 const renderBadge = (status: string) => {
   console.log("Rendering badge for status: ", status); // Debug log
@@ -87,12 +106,14 @@ export const columns: ColumnDef<Tool>[] = [
   },
   {
     accessorKey: "monthly_cost",
+    cell: ({ row }) => <MonthlyCostCell value={row.original.monthly_cost} />,
     header: ({ column }) => {
       return <SortableHeader column={column} label="Monthly Cost" />;
     },
   },
   {
     accessorKey: "last_update",
+    cell: ({ row }) => <LastUpdateCell value={row.original.last_update} />,
     header: ({ column }) => {
       return <SortableHeader column={column} label="Last Update" />;
     },
