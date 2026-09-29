@@ -28,6 +28,7 @@ export function CustomProgress({
 
   return (
     <ProgressPrimitive.Root
+      value={safeValue}
       className={cn(
         "relative h-6 w-full overflow-hidden rounded-full bg-transparent",
         className,
