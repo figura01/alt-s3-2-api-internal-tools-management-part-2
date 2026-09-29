@@ -81,7 +81,7 @@ export default function KpiGrid({ kpis }: Props) {
               </div>
             }
           >
-            <div className="flex items-end gap-2">
+            <div className="flex flex-wrap items-end gap-2">
               <p className="text-3xl font-bold tracking-tight">
                 {kpi.format === "currency"
                   ? formatCurrency(kpi.value, locale, currency)
@@ -98,12 +98,23 @@ export default function KpiGrid({ kpis }: Props) {
             </div>
             <div className="flex items-center justify-between">
               {kpi.progress !== undefined ? (
-                <CustomProgress
-                  value={kpi.progress}
-                  label={formatPercentage(kpi.progress, locale)}
-                  {...gradients[kpi.variant]}
-                  className="h-5"
-                />
+                <div className="w-full space-y-2 pt-2">
+                  <CustomBadge angle={90} {...gradients[kpi.variant]}>
+                    {formatPercentage(kpi.progress, locale)} used
+                  </CustomBadge>
+                  <CustomProgress
+                    value={kpi.progress}
+                    aria-label="Monthly budget used"
+                    aria-valuetext={`${formatPercentage(kpi.progress, locale)} used`}
+                    {...gradients[kpi.variant]}
+                    className="h-2 bg-muted"
+                  />
+                  {kpi.trend !== null && (
+                    <p className="text-xs text-muted-foreground">
+                      {trend} vs previous month
+                    </p>
+                  )}
+                </div>
               ) : (
                 <CustomBadge angle={90} {...gradients[kpi.variant]}>
                   {trend}
