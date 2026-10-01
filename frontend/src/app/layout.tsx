@@ -47,6 +47,9 @@ export default function RootLayout({
                 <AppStoreSyncProvider>
                   <AuthBootstrap />
                   <AppHeader />
+                  <p className="border-b border-border/60 bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
+                    Demo environment — fictional tools, costs and usage data.
+                  </p>
                   <main className="flex-1 w-full px-10">{children}</main>
                   <Toaster richColors position="top-right" />
                 </AppStoreSyncProvider>
