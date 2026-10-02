@@ -67,7 +67,7 @@ export function mapToolToTable(tool: Tool): ToolForTable {
     id: tool.id,
     name: tool.name,
 
-    icon_url: tool.icon_url ?? "/image-default.png",
+    icon_url: tool.icon_url ?? "",
 
     owner_department: tool.owner_department || "N/A",
 
