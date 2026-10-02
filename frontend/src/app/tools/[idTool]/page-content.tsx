@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 
 import { ChevronLeft } from "lucide-react";
 
-import Image from "next/image";
+import { ToolIcon } from "@/components/tools/tool-icon";
 
 
 
@@ -52,17 +52,7 @@ function PageContent({ params }: { params: Promise<{ idTool: string }> }) {
           </p>
           <p>
             <strong>Icon:</strong>{" "}
-            {tool?.icon_url ? (
-              <Image
-                width={32}
-                height={32}
-                src={tool.icon_url}
-                alt={tool.name}
-                className="h-10 w-10"
-              />
-            ) : (
-              "N/A"
-            )}
+            <ToolIcon name={tool.name} iconUrl={tool.icon_url} />
           </p>
           <p>
             <strong>Category:</strong> {tool.category || "N/A"}

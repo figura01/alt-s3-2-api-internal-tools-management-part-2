@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { CustomBadge } from "@/components/ui/custom-badge";
 
-import { CustomImage } from "@/components/custom-image";
+import { ToolIcon } from "@/components/tools/tool-icon";
 
 import type { ToolForTable } from "@/types/tool";
 import { formatCurrency } from "@/utils/format";
@@ -50,15 +50,10 @@ const TableRecentTools = ({ tools }: Props) => {
             {tools.map((tool) => (
               <TableRow key={tool.id}>
                 <TableCell>
-                  {tool.icon_url && (
-                    <CustomImage
-                      src={String(tool.icon_url)}
-                      alt={String(tool.name)}
-                    />
-                  )}{" "}
-                  {tool.name.length > 20
-                    ? tool.name.slice(0, 20) + "..."
-                    : tool.name}
+                  <div className="flex items-center gap-3">
+                    <ToolIcon name={tool.name} iconUrl={tool.icon_url} />
+                    <span title={tool.name}>{tool.name.length > 20 ? tool.name.slice(0, 20) + "..." : tool.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell>{tool.owner_department}</TableCell>
                 <TableCell>{tool.users}</TableCell>

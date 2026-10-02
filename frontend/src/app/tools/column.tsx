@@ -8,7 +8,7 @@
 
 import { CustomBadge } from "@/components/ui/custom-badge";
 import { ColumnDef } from "@tanstack/react-table";
-import Image from "next/image";
+import { ToolIcon } from "@/components/tools/tool-icon";
 
 import { SortableHeader } from "@/components/data-table/sortable-header";
 
@@ -57,20 +57,7 @@ export const columns: ColumnDef<Tool>[] = [
   {
     accessorKey: "icon_url",
     header: "Tool Icon",
-    cell: ({ row }) => {
-      const value = row.original.icon_url;
-      return value ? (
-        <Image
-          src={String(value)}
-          alt={String(row.original.name)}
-          width={32}
-          height={32}
-          className="rounded"
-        />
-      ) : (
-        <div className="w-8 h-8 bg-gray-200 rounded">N/A</div>
-      );
-    },
+    cell: ({ row }) => <ToolIcon name={row.original.name} iconUrl={row.original.icon_url} />,
   },
   {
     accessorKey: "name",
