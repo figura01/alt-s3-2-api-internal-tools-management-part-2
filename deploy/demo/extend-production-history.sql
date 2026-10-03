@@ -2,7 +2,7 @@
 -- Additive and repeatable: existing cost records and populated usage months stay intact.
 BEGIN;
 DO $$ BEGIN
-  IF (SELECT count(*) FROM tools WHERE name IN ('Demo TeamChat','Demo CodeForge','Demo ArchiveBox','Demo CampaignFlow','Demo OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')) <> 10
+  IF (SELECT count(*) FROM tools WHERE name IN ('TeamChat','CodeForge','ArchiveBox','CampaignFlow','OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')) <> 10
     OR (SELECT count(*) FROM users WHERE id LIKE 'portfolio-demo-user-%') <> 18
   THEN RAISE EXCEPTION 'Unexpected production demo dataset'; END IF;
 END $$;
@@ -14,14 +14,14 @@ WITH months AS (
 ), scenario AS (
   SELECT t.id, m.month,
     CASE t.name
-      WHEN 'Demo TeamChat' THEN 25 + floor(m.n / 4.0) * 5
-      WHEN 'Demo CodeForge' THEN 15 + floor(m.n / 4.0) * 5
-      WHEN 'Demo OldMetrics' THEN 15 + floor(m.n / 6.0) * 5
+      WHEN 'TeamChat' THEN 25 + floor(m.n / 4.0) * 5
+      WHEN 'CodeForge' THEN 15 + floor(m.n / 4.0) * 5
+      WHEN 'OldMetrics' THEN 15 + floor(m.n / 6.0) * 5
       WHEN 'GitHub' THEN CASE WHEN m.n >= 6 THEN 10 ELSE 0 END
       ELSE 0
     END AS cost
   FROM tools t CROSS JOIN months m
-  WHERE t.name IN ('Demo TeamChat','Demo CodeForge','Demo ArchiveBox','Demo CampaignFlow','Demo OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')
+  WHERE t.name IN ('TeamChat','CodeForge','ArchiveBox','CampaignFlow','OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')
 )
 INSERT INTO cost_tracking(id,tool_id,month,cost,user_count,cost_per_user,created_at,updated_at)
 SELECT 'portfolio-demo-history-v3-' || to_char(month,'YYYY-MM') || '-' || id, id,month,cost,0,0,now(),now() FROM scenario
@@ -36,10 +36,10 @@ WITH eligible AS (
  WHERE c.month >= (date_trunc('month',current_timestamp AT TIME ZONE 'UTC') - interval '23 months')::date
    AND c.month < date_trunc('month',current_timestamp AT TIME ZONE 'UTC')::date
    AND c.cost > 0
-   AND t.name IN ('Demo TeamChat','Demo CodeForge','Demo ArchiveBox','Demo CampaignFlow','Demo OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')
+   AND t.name IN ('TeamChat','CodeForge','ArchiveBox','CampaignFlow','OldMetrics','Figma','GitHub','Notion','ChatGPT','Codex')
    AND NOT EXISTS (SELECT 1 FROM usage_logs l WHERE l."toolId"=c.tool_id AND l."usageDate">=c.month AND l."usageDate"<c.month+interval '1 month')
-   AND NOT (t.name='Demo ArchiveBox' AND c.month >= date '2026-08-01')
-   AND NOT (t.name='Demo OldMetrics' AND c.month >= date '2026-09-01')
+   AND NOT (t.name='ArchiveBox' AND c.month >= date '2026-08-01')
+   AND NOT (t.name='OldMetrics' AND c.month >= date '2026-09-01')
 ), participants AS (
  SELECT e.*,u.id AS user_id,row_number() OVER(PARTITION BY e.tool_id,e.month ORDER BY u.id) AS rank
  FROM eligible e JOIN users u ON u.department_id=e.owner_department_id AND u.id LIKE 'portfolio-demo-user-%'
