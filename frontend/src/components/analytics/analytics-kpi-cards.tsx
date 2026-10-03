@@ -58,31 +58,24 @@ export function AnalyticsKpiCards({ data }: Props) {
 
       <SingleCardKpi
         title="Unique Active Users"
-        value={{
-          active: analytics.cost_analytics.active_users,
-          total: analytics.cost_analytics.total_users,
-        }}
-        formatValue={({ active, total }) => `${active} / ${total}`}
+        value={analytics.cost_analytics.active_users}
+        formatValue={(active) => String(active)}
         badge={{
-          label: formatPercentage(
-            analytics.cost_analytics.total_users > 0 ? analytics.cost_analytics.active_users / analytics.cost_analytics.total_users * 100 : null,
-            locale,
-            false,
-          ),
+          label: analytics.period_usage ? `${analytics.period_usage.active_users_change > 0 ? "+" : ""}${analytics.period_usage.active_users_change} vs previous period` : "Logged sessions",
           className: "gradient-green",
         }}
-        description={`${analytics.cost_analytics.cumulative_tool_users} current tool users (not unique)`}
+        description={`${analytics.cost_analytics.cumulative_tool_users} tool-user pairs in the selected period (not unique users)`}
       />
 
       <SingleCardKpi
-        title="Savings Potential"
-        value={potentialSavings}
+        title={analytics.period_usage ? "Spend Without Usage" : "Savings Potential"}
+        value={analytics.period_usage ? analytics.period_usage.spend_without_usage : potentialSavings}
         formatValue={formatAmount}
         badge={{
-          label: `${data.unusedTools.length} unused`,
+          label: analytics.period_usage ? `${analytics.period_usage.tools_without_usage} without logged usage` : `${data.unusedTools.length} unused`,
           variant: "destructive",
         }}
-        description="Current potential savings / month"
+        description={analytics.period_usage ? "Period costs for tools with no logged sessions; review before treating as savings" : "Current potential savings / month"}
       />
     </section>
   );

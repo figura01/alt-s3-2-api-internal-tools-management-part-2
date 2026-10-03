@@ -7,8 +7,9 @@ describe('period analytics', () => {
   afterEach(() => jest.useRealTimers());
   function setup(months: string[]) {
     const prisma = {
-      costTracking: { findMany: jest.fn().mockResolvedValue(months.map(month => ({ month: new Date(`${month}-01T00:00:00Z`), cost: 10.10 }))) },
+      costTracking: { findMany: jest.fn().mockResolvedValue(months.map(month => ({ month: new Date(`${month}-01T00:00:00Z`), cost: 10.10, toolId: "tool-1" }))) },
       user: { count: jest.fn().mockResolvedValueOnce(2).mockResolvedValueOnce(1).mockResolvedValueOnce(5) },
+      usageLog: { findMany: jest.fn().mockResolvedValue([]) },
       tool: { findMany: jest.fn().mockResolvedValue([{ activeUsersCount: 7 }]) },
     };
     return { prisma, service: new AnalyticsService(prisma as never) };
@@ -43,5 +44,24 @@ describe('period analytics', () => {
   });
   it('rejects unsupported ranges', async () => {
     expect(await validate(Object.assign(new KpiQueryDto(), { range: '2y' }))).toHaveLength(1);
+  });
+  it('uses period sessions instead of catalogue counters and deduplicates tool-user pairs', async () => {
+    const { service, prisma } = setup(['2025-09','2025-10','2025-11','2025-12','2026-01','2026-02']);
+    prisma.usageLog.findMany.mockResolvedValue([
+      { toolId: 'tool-1', userId: 'u1', usageDate: new Date('2025-10-10') },
+      { toolId: 'tool-2', userId: 'u1', usageDate: new Date('2026-01-10') },
+      { toolId: 'tool-2', userId: 'u1', usageDate: new Date('2026-01-11') },
+      { toolId: 'tool-2', userId: 'u2', usageDate: new Date('2026-02-10') },
+    ] as never);
+    const result = await service.getAnalytics('Engineering', '3m');
+    expect(result.cost_analytics.cumulative_tool_users).toBe(2);
+    expect(result.period_usage).toMatchObject({ spend_without_usage: 30.3, tools_without_usage: 1, previous_spend_without_usage: 0 });
+    expect(prisma.usageLog.findMany.mock.calls[0][0].where).toMatchObject({ sessionCount: { gt: 0 }, tool: { ownerDepartment: { name: 'Engineering' } } });
+  });
+  it('shows no cost without usage when the same tool has a session within the period', async () => {
+    const { service, prisma } = setup(['2026-01','2026-02']);
+    prisma.usageLog.findMany.mockResolvedValue([{ toolId: 'tool-1', userId: 'u1', usageDate: new Date('2026-02-10') }] as never);
+    expect((await service.getAnalytics(undefined, '1m')).period_usage?.spend_without_usage).toBe(0);
+    expect((await service.getAnalytics(undefined, '3m')).period_usage?.spend_without_usage).toBeNull();
   });
 });

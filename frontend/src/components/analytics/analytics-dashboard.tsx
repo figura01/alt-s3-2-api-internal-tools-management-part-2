@@ -51,7 +51,7 @@ export function AnalyticsDashboard({ data }: Props) {
       />
 
       {waiting ? <p role={scoped.isError ? "alert" : "status"}>{scoped.isError ? <button onClick={() => scoped.refetch()}>Unable to load period indicators. Retry</button> : "Loading period indicators…"}</p> : <AnalyticsKpiCards data={filteredData} />}
-      <p className="text-sm text-muted-foreground">Spending and unique active users follow the selected calendar months, including the current partial month. Trends compare with the preceding period of the same duration. Budget assumes the current monthly company limit for each month. Savings, tool counts and breakdowns describe the current catalogue. Missing history is shown as —.</p>
+      <p className="text-sm text-muted-foreground">Spending and unique active users follow the selected calendar months, including the current partial month. Trends compare with the preceding period of the same duration. Budget assumes the current monthly company limit for each month. The fourth KPI shows period spending on tools without logged usage, which is not a guaranteed saving. Total accounts and the catalogue charts below describe the current catalogue. Missing history is shown as —.</p>
       <CostAnalyticsSection data={filteredData} range={range} />
       <UsageAnalyticsSection data={filteredData} />
       <InsightsSection data={filteredData} />

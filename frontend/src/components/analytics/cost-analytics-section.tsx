@@ -23,7 +23,10 @@ import { EmptyState } from "@/components/empty-state";
 
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
 
-import { getSpendEvolutionByRange } from "@/utils/analytics-range";
+import { getSpendComparisonByRange, getPreviousPeriodLabel, formatSpendMonth } from "@/utils/analytics-range";
+
+import { SpendComparisonTooltip } from "./spend-comparison-tooltip";
+import { useAppStore } from "@/store/store";
 
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
@@ -43,7 +46,16 @@ const chartColors = [
 export function CostAnalyticsSection({ data, range }: Props) {
   const isMobile = useIsMobile();
 
-  const spendEvolution = getSpendEvolutionByRange(data.spendHistory, range);
+  const locale = useAppStore((state) => state.locale);
+  const spendEvolution = getSpendComparisonByRange(data.spendHistory, range);
+  const previousName = getPreviousPeriodLabel(range);
+  const periodCaption = (previous: boolean) => {
+    const first = spendEvolution[0];
+    const last = spendEvolution[spendEvolution.length - 1];
+    const start = previous ? first.previousLabel : first.label;
+    const end = previous ? last.previousLabel : last.label;
+    return start === end ? formatSpendMonth(start, locale) : `${formatSpendMonth(start, locale)} – ${formatSpendMonth(end, locale)}`;
+  };
 
   const topExpensiveTools = data.topExpensiveTools.map((tool) => ({
     name: tool.name,
@@ -55,45 +67,49 @@ export function CostAnalyticsSection({ data, range }: Props) {
       <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Monthly Spend Evolution</CardTitle>
+          <p className="text-sm text-muted-foreground">{periodCaption(false)} · comparison {periodCaption(true)}</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Chart legend">
+            <span className="flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-[3px] border-blue-500" />Selected period · current month partial</span>
+            <span className="flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-[3px] border-dashed border-slate-400" />{previousName}</span>
+          </div>
           <p className="text-sm text-muted-foreground">Recorded monthly costs; automatic snapshots use the first observed catalogue cost each month. Missing months remain empty. Current month may be incomplete. Departments reflect current tool ownership.</p>
         </CardHeader>
 
         <CardContent className="h-80">
-          {spendEvolution.some(point => point.spend !== null) ? (
+          {spendEvolution.some(point => point.spend !== null || point.previousSpend !== null) ? (
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={spendEvolution}>
-                <defs>
-                  <linearGradient
-                    id="spendGradient"
-                    x1="0"
-                    y1="0"
-                    x2="1"
-                    y2="0"
-                  >
-                    <stop offset="0%" stopColor="#3b82f6" />
 
-                    <stop offset="100%" stopColor="#8b5cf6" />
-                  </linearGradient>
-                </defs>
 
                 <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
 
-                <XAxis dataKey="label" />
+                <XAxis dataKey="label" tickFormatter={(month: string) => formatSpendMonth(month, locale, false)} />
 
                 <YAxis />
 
-                <Tooltip content={<ChartTooltip />} />
+                <Tooltip filterNull={false} content={<SpendComparisonTooltip previousName={previousName} />} />
 
                 <Line
                   type="linear"
                   connectNulls={false}
                   dataKey="spend"
-                  stroke="url(#spendGradient)"
+                  name="Selected period"
+                  stroke="#3b82f6"
                   strokeWidth={4}
                   dot={{
                     r: 5,
-                    fill: "#8b5cf6",
+                    fill: "#3b82f6",
                   }}
+                />
+                <Line
+                  type="linear"
+                  connectNulls={false}
+                  dataKey="previousSpend"
+                  name={previousName}
+                  stroke="#94a3b8"
+                  strokeDasharray="6 4"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: "#94a3b8" }}
                 />
               </LineChart>
             </ResponsiveContainer>

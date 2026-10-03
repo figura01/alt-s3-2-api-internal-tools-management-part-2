@@ -25,7 +25,7 @@ export class AnalyticsService {
 
   async getSpendHistory() {
     const now = new Date();
-    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 11, 1));
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 23, 1));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
     const records = await this.prisma.costTracking.findMany({
       where: { month: { gte: start, lt: end } },
@@ -697,11 +697,11 @@ export class AnalyticsService {
     const usersIn = (gte: Date, lt: Date) => this.prisma.user.count({ where: {
       ...userWhere, usageLogs: { some: { usageDate: { gte, lt }, sessionCount: { gt: 0 }, tool: toolWhere } },
     } });
-    const [records, activeUsers, previousUsers, totalUsers, tools] = await Promise.all([
-      this.prisma.costTracking.findMany({ where: { month: { gte: previousStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true } }),
+    const [records, activeUsers, previousUsers, totalUsers, usage] = await Promise.all([
+      this.prisma.costTracking.findMany({ where: { month: { gte: previousStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true, toolId: true } }),
       usersIn(start, now), usersIn(previousStart, start),
       this.prisma.user.count({ where: userWhere }),
-      this.prisma.tool.findMany({ where: toolWhere, select: { activeUsersCount: true } }),
+      this.prisma.usageLog.findMany({ where: { usageDate: { gte: previousStart, lt: now }, sessionCount: { gt: 0 }, tool: toolWhere }, select: { toolId: true, userId: true, usageDate: true } }),
     ]);
     const summarize = (from: Date, to: Date) => {
       const rows = records.filter(row => row.month >= from && row.month < to);
@@ -715,11 +715,21 @@ export class AnalyticsService {
     const costPerUser = complete && activeUsers > 0 ? current.total / activeUsers : null;
     const previousCost = previousTotal !== null && previousUsers > 0 ? previousTotal / previousUsers : null;
     const change = complete && previousTotal !== null && previousTotal > 0 ? (current.total - previousTotal) / previousTotal * 100 : null;
+    const usageIn = (from: Date, to: Date) => usage.filter(row => row.usageDate >= from && row.usageDate < to);
+    const currentUsage = usageIn(start, now);
+    const spendWithoutUsage = (from: Date, to: Date) => {
+      const used = new Set(usageIn(from, to).map(row => row.toolId));
+      const rows = records.filter(row => row.month >= from && row.month < to && Number(row.cost) > 0 && !used.has(row.toolId));
+      return { total: rows.reduce((sum, row) => sum + Math.round(Number(row.cost) * 100), 0) / 100, tools: new Set(rows.map(row => row.toolId)).size };
+    };
+    const noUsage = spendWithoutUsage(start, end);
+    const previousNoUsage = spendWithoutUsage(previousStart, start);
     return {
+      period_usage: { spend_without_usage: complete ? noUsage.total : null, tools_without_usage: noUsage.tools, previous_spend_without_usage: previousTotal !== null ? previousNoUsage.total : null, active_users_change: activeUsers - previousUsers },
       period: { start: start.toISOString(), end: now.toISOString(), months, recorded_months: current.coveredMonths, total: current.coveredMonths ? current.total : null, budget: MONTHLY_BUDGET * months },
       budget_overview: { monthly_limit: MONTHLY_BUDGET, current_month_total: current.total, previous_month_total: previousTotal, budget_utilization: current.total / (MONTHLY_BUDGET * months) * 100, trend_percentage: change },
       kpi_trends: { budget_change: change, tools_change: null, departments_change: null, cost_per_user_change: costPerUser !== null && previousCost !== null ? costPerUser - previousCost : null },
-      cost_analytics: { cost_per_user: costPerUser, previous_cost_per_user: previousCost, active_users: activeUsers, total_users: totalUsers, cumulative_tool_users: tools.reduce((sum, tool) => sum + tool.activeUsersCount, 0) },
+      cost_analytics: { cost_per_user: costPerUser, previous_cost_per_user: previousCost, active_users: activeUsers, total_users: totalUsers, cumulative_tool_users: new Set(currentUsage.map(row => JSON.stringify([row.toolId, row.userId]))).size },
     };
   }
 

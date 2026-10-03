@@ -22,6 +22,7 @@ export type CostAnalytics = {
 };
 
 export type Analytics = {
+  period_usage?: { spend_without_usage: number | null; tools_without_usage: number; previous_spend_without_usage: number | null; active_users_change: number };
   period?: { start: string; end: string; months: number; recorded_months: number; total: number | null; budget: number };
   budget_overview: BudgetOverview;
   kpi_trends: KpiTrends;

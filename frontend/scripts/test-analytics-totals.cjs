@@ -47,3 +47,11 @@ test('CSV uses period totals and budget instead of the current catalogue snapsho
   data.analytics.period.total = null;
   assert.ok(buildAnalyticsCsv(filtered, { department: 'IT', range: '3m', currency: 'EUR' }).includes('"KPI","Period spend","",'));
 });
+
+ test('CSV exports recorded costs without usage instead of current savings for period KPIs', () => {
+  const data = { tools, monthlyLimit: 30000, analytics: { period_usage: { spend_without_usage: 42.5, tools_without_usage: 2 }, cost_analytics: { cost_per_user: 10, active_users: 3, cumulative_tool_users: 4, total_users: 5 }, kpi_trends: {} }, spendHistory: { endMonth: '2026-09', points: [] } };
+  const csv = buildAnalyticsCsv(filterAnalyticsDashboardData(data, 'IT'), { department: 'IT', range: '3m', currency: 'EUR' });
+  assert.ok(csv.includes('"KPI","Period spend without logged usage",42.5,'));
+  assert.ok(csv.includes('"KPI","Tools without logged usage",2,'));
+  assert.ok(!csv.includes('"KPI","Potential monthly savings"'));
+});

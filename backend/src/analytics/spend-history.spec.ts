@@ -13,7 +13,7 @@ describe('Recorded spend history', () => {
       { month: '2025-12', department: 'Sales', spend: 12, records: 1 },
       { month: '2026-01', department: 'IT', spend: 0, records: 1 },
     ] });
-    expect(findMany.mock.calls.at(-1)[0].where).toEqual({ month: { gte: new Date('2025-02-01'), lt: new Date('2026-02-01') } });
+    expect(findMany.mock.calls.at(-1)[0].where).toEqual({ month: { gte: new Date('2024-02-01'), lt: new Date('2026-02-01') } });
   });
   it('never invents absent history', async () => {
     findMany.mockResolvedValue([]);

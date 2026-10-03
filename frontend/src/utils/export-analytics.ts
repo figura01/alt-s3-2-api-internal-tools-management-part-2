@@ -1,5 +1,5 @@
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
-import { getSpendEvolutionByRange } from "./analytics-range";
+import { getSpendComparisonByRange } from "./analytics-range";
 
 type ExportOptions = {
   department: string;
@@ -32,7 +32,7 @@ export function buildAnalyticsCsv(
   add("Metadata", "Exported at (UTC)", exportedAt.toISOString());
   add("Metadata", "Department", department === "all" ? "All departments" : department);
   add("Metadata", "Selected period", range);
-  add("Metadata", "Data scope", "Spending and unique active users follow the selected period. Savings and catalogue breakdowns are current snapshots.");
+  add("Metadata", "Data scope", "KPI spending, unique active users and costs without logged usage follow the selected period. Catalogue breakdowns remain current snapshots.");
   add("Metadata", "Currency", `${currency} (display setting; no currency conversion)`);
   add("Metadata", "Historical data", "Spend evolution uses recorded monthly costs; automatic snapshots retain the first observed catalogue cost each month; blank means no records, not zero. Periods include the current month (possibly incomplete). Departments reflect current tool ownership. KPI trends use the selected department; unavailable values are blank.");
   add("Metadata", "User counts", "Unique active accounts with logged sessions in the selected period on tools in the selected scope. Cumulative tool users are separate. Total users are active accounts in the selected department; budget limit remains company-wide.");
@@ -51,8 +51,13 @@ export function buildAnalyticsCsv(
   add("KPI", "Unique active users (selected period)", costs.active_users, "users", department);
   add("KPI", "Cumulative tool users", costs.cumulative_tool_users, "tool users", department);
   add("KPI", "Total users", costs.total_users, "users", department);
-  add("KPI", "Potential monthly savings", data.potentialSavings, currency, department);
-  add("KPI", "Unused tools", data.unusedTools.length, "tools", department);
+  if (data.analytics.period_usage) {
+    add("KPI", "Period spend without logged usage", data.analytics.period_usage.spend_without_usage, currency, department);
+    add("KPI", "Tools without logged usage", data.analytics.period_usage.tools_without_usage, "tools", department);
+  } else {
+    add("KPI", "Potential monthly savings", data.potentialSavings, currency, department);
+    add("KPI", "Unused tools", data.unusedTools.length, "tools", department);
+  }
   add("KPI", "Expiring tools", data.expiringTools.length, "tools", department);
   for (const [metric, value] of Object.entries(trends)) {
     add("KPI trends", metric, value, metric === "cost_per_user_change" ? currency : "%", department);
@@ -60,9 +65,13 @@ export function buildAnalyticsCsv(
   for (const item of data.departmentCosts) {
     add("Department costs", item.name, item.value, currency, item.name);
   }
-  for (const point of getSpendEvolutionByRange(data.spendHistory, range)) {
+  for (const point of getSpendComparisonByRange(data.spendHistory, range)) {
     add("Spend evolution", point.label, point.spend ?? "", currency, department);
     add("Historical record count", point.label, point.records, "records", department);
+    add("Previous period spend", point.previousLabel, point.previousSpend, currency, department);
+    add("Previous period record count", point.previousLabel, point.previousRecords, "records", department);
+    add("Spend difference", `${point.label} vs ${point.previousLabel}`, point.difference, currency, department);
+    add("Spend change", `${point.label} vs ${point.previousLabel}`, point.percentage, "%", department);
   }
   for (const [section, tools] of [
     ["Tools", data.tools],
