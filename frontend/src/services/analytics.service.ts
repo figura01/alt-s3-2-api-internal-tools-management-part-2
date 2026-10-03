@@ -49,8 +49,11 @@ export async function getAnalyticsForVendorSummary(): Promise<Analytics> {
   return response.json();
 }
 
-export function getAnalytics(department?: string) {
-  return api<KpiAnalytics>(department ? `/analytics?department=${encodeURIComponent(department)}` : "/analytics", {
+export function getAnalytics(department?: string, range?: string) {
+  const params = new URLSearchParams();
+  if (department && department !== "all") params.set("department", department);
+  if (range) params.set("range", range);
+  return api<KpiAnalytics>(`/analytics?${params}`, {
     cache: "no-store",
   });
 }

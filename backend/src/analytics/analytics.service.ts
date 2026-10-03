@@ -645,7 +645,8 @@ export class AnalyticsService {
     };
   }
 
-  async getAnalytics(department?: string): Promise<KpiAnalyticsResponse> {
+  async getAnalytics(department?: string, range?: '1m' | '3m' | '1y'): Promise<KpiAnalyticsResponse> {
+    if (range) return this.getPeriodAnalytics(department, range);
     const now = new Date();
     const currentMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
     const previousMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
@@ -685,6 +686,43 @@ export class AnalyticsService {
       },
     };
   }
+  private async getPeriodAnalytics(department: string | undefined, range: '1m' | '3m' | '1y'): Promise<KpiAnalyticsResponse> {
+    const now = new Date();
+    const months = range === '1y' ? 12 : range === '3m' ? 3 : 1;
+    const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - months + 1, 1));
+    const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2 * months + 1, 1));
+    const toolWhere = department ? { ownerDepartment: { name: department } } : {};
+    const userWhere = { status: 'ACTIVE' as const, ...(department ? { department: { name: department } } : {}) };
+    const usersIn = (gte: Date, lt: Date) => this.prisma.user.count({ where: {
+      ...userWhere, usageLogs: { some: { usageDate: { gte, lt }, sessionCount: { gt: 0 }, tool: toolWhere } },
+    } });
+    const [records, activeUsers, previousUsers, totalUsers, tools] = await Promise.all([
+      this.prisma.costTracking.findMany({ where: { month: { gte: previousStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true } }),
+      usersIn(start, now), usersIn(previousStart, start),
+      this.prisma.user.count({ where: userWhere }),
+      this.prisma.tool.findMany({ where: toolWhere, select: { activeUsersCount: true } }),
+    ]);
+    const summarize = (from: Date, to: Date) => {
+      const rows = records.filter(row => row.month >= from && row.month < to);
+      const coveredMonths = new Set(rows.map(row => row.month.toISOString().slice(0, 7))).size;
+      return { total: rows.reduce((sum, row) => sum + Math.round(Number(row.cost) * 100), 0) / 100, coveredMonths };
+    };
+    const current = summarize(start, end);
+    const previous = summarize(previousStart, start);
+    const complete = current.coveredMonths === months;
+    const previousTotal = previous.coveredMonths === months ? previous.total : null;
+    const costPerUser = complete && activeUsers > 0 ? current.total / activeUsers : null;
+    const previousCost = previousTotal !== null && previousUsers > 0 ? previousTotal / previousUsers : null;
+    const change = complete && previousTotal !== null && previousTotal > 0 ? (current.total - previousTotal) / previousTotal * 100 : null;
+    return {
+      period: { start: start.toISOString(), end: now.toISOString(), months, recorded_months: current.coveredMonths, total: current.coveredMonths ? current.total : null, budget: MONTHLY_BUDGET * months },
+      budget_overview: { monthly_limit: MONTHLY_BUDGET, current_month_total: current.total, previous_month_total: previousTotal, budget_utilization: current.total / (MONTHLY_BUDGET * months) * 100, trend_percentage: change },
+      kpi_trends: { budget_change: change, tools_change: null, departments_change: null, cost_per_user_change: costPerUser !== null && previousCost !== null ? costPerUser - previousCost : null },
+      cost_analytics: { cost_per_user: costPerUser, previous_cost_per_user: previousCost, active_users: activeUsers, total_users: totalUsers, cumulative_tool_users: tools.reduce((sum, tool) => sum + tool.activeUsersCount, 0) },
+    };
+  }
+
   // =========================
   // PRIVATE HELPERS
   // =========================

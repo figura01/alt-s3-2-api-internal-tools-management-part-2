@@ -39,9 +39,9 @@ export function SingleCardKpi<TValue>({
     >
       <div className="flex flex-col items-start ">
         {subtitle != null ? (
-          <div className="flex flex-row items-center">
+          <div className="flex flex-wrap items-baseline gap-x-1">
             {formattedValue}
-            <p className="mt-2 ml-1 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {subtitle}
             </p>
           </div>

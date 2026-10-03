@@ -25,10 +25,11 @@ export function AnalyticsKpiCards({ data }: Props) {
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <SingleCardKpi
-        title="Budget Progress"
-        value={totalMonthlySpend}
+        title="Period Spend"
+        value={analytics.period ? analytics.period.total : totalMonthlySpend}
         formatValue={formatAmount}
-        subtitle={`/ ${formatAmount(monthlyLimit)} company limit`}
+        subtitle={`/ ${formatAmount(analytics.period?.budget ?? monthlyLimit)} company budget`}
+        description={analytics.period ? `${analytics.period.start.slice(0, 10)} – ${analytics.period.end.slice(0, 10)} · ${analytics.period.recorded_months}/${analytics.period.months} months recorded` : undefined}
         badge={{
           label: formatPercentage(
             analytics.kpi_trends.budget_change,
@@ -52,7 +53,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           ),
           className: "gradient-pink",
         }}
-        description="Unique users with logged sessions this month"
+        description="Period spend per unique active user"
       />
 
       <SingleCardKpi
@@ -70,7 +71,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           ),
           className: "gradient-green",
         }}
-        description={`${analytics.cost_analytics.cumulative_tool_users} cumulative tool users (not unique)`}
+        description={`${analytics.cost_analytics.cumulative_tool_users} current tool users (not unique)`}
       />
 
       <SingleCardKpi
@@ -81,7 +82,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           label: `${data.unusedTools.length} unused`,
           variant: "destructive",
         }}
-        description="Potential optimization savings"
+        description="Current potential savings / month"
       />
     </section>
   );

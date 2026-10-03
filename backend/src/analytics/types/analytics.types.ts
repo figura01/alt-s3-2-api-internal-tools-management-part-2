@@ -102,6 +102,7 @@ export type VendorSummaryResponse = {
 };
 
 export type KpiAnalyticsResponse = {
+  period?: { start: string; end: string; months: number; recorded_months: number; total: number | null; budget: number };
   budget_overview: {
     monthly_limit: number;
     current_month_total: number;

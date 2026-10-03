@@ -103,6 +103,6 @@ export class AnalyticsController {
     description: 'Dashboard analytics retrieved successfully',
   })
   getAnalytics(@Query() query: KpiQueryDto): Promise<KpiAnalyticsResponse> {
-    return this.analyticsService.getAnalytics(query.department);
+    return this.analyticsService.getAnalytics(query.department, query.range);
   }
 }

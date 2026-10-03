@@ -30,9 +30,20 @@ test('department view and CSV agree on fractional costs and savings', () => {
   assert.equal(filtered.totalMonthlySpend, 0.3);
   assert.equal(filtered.budgetUtilization, 30);
   const csv = buildAnalyticsCsv(filtered, { department: 'IT', range: '3m', currency: 'EUR' });
-  assert.ok(csv.includes('"KPI","Monthly spend",0.3,'));
+  assert.ok(csv.includes('"KPI","Period spend",0.3,'));
   assert.ok(csv.includes('"KPI","Potential monthly savings",0.3,'));
   assert.ok(csv.includes('"Department costs","IT",0.3,'));
   assert.equal(filterAnalyticsDashboardData(data, 'Missing').totalMonthlySpend, 0);
   assert.equal(filterAnalyticsDashboardData(data, 'all'), data);
+});
+
+test('CSV uses period totals and budget instead of the current catalogue snapshot', () => {
+  const data = { tools, monthlyLimit: 30000, analytics: { period: { start: '2026-07-01', end: '2026-09-10', months: 3, recorded_months: 3, total: 1200, budget: 90000 }, cost_analytics: { cost_per_user: 120, active_users: 10, cumulative_tool_users: 12, total_users: 15 }, kpi_trends: {} }, spendHistory: { endMonth: '2026-09', points: [] } };
+  const filtered = filterAnalyticsDashboardData(data, 'IT');
+  const csv = buildAnalyticsCsv(filtered, { department: 'IT', range: '3m', currency: 'EUR' });
+  assert.ok(csv.includes('"KPI","Period spend",1200,'));
+  assert.ok(csv.includes('"KPI","Period budget limit",90000,'));
+  assert.ok(csv.includes('"KPI","Unique active users (selected period)",10,'));
+  data.analytics.period.total = null;
+  assert.ok(buildAnalyticsCsv(filtered, { department: 'IT', range: '3m', currency: 'EUR' }).includes('"KPI","Period spend","",'));
 });

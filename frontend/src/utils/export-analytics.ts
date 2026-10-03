@@ -31,18 +31,24 @@ export function buildAnalyticsCsv(
   rows.push(["Section", "Metric / Name", "Value", "Unit", "Scope / Department", "Category", "Vendor", "Status", "Active users", "Tool ID"]);
   add("Metadata", "Exported at (UTC)", exportedAt.toISOString());
   add("Metadata", "Department", department === "all" ? "All departments" : department);
-  add("Metadata", "Selected chart range", range);
-  add("Metadata", "Data scope", "Current snapshot; selected range applies only to spend evolution, not to KPIs or tools.");
+  add("Metadata", "Selected period", range);
+  add("Metadata", "Data scope", "Spending and unique active users follow the selected period. Savings and catalogue breakdowns are current snapshots.");
   add("Metadata", "Currency", `${currency} (display setting; no currency conversion)`);
   add("Metadata", "Historical data", "Spend evolution uses recorded monthly costs; automatic snapshots retain the first observed catalogue cost each month; blank means no records, not zero. Periods include the current month (possibly incomplete). Departments reflect current tool ownership. KPI trends use the selected department; unavailable values are blank.");
-  add("Metadata", "User counts", "Unique active accounts with logged sessions this month on tools in the selected scope. Cumulative tool users are separate. Total users are active accounts in the selected department; budget limit remains company-wide.");
+  add("Metadata", "User counts", "Unique active accounts with logged sessions in the selected period on tools in the selected scope. Cumulative tool users are separate. Total users are active accounts in the selected department; budget limit remains company-wide.");
 
+  if (data.analytics.period) {
+    add("Metadata", "Period start (UTC)", data.analytics.period.start);
+    add("Metadata", "Period end (UTC)", data.analytics.period.end);
+    add("Metadata", "Months with recorded costs", data.analytics.period.recorded_months);
+    add("Metadata", "Period budget assumption", "Current monthly company budget multiplied by selected calendar months; current month is partial.");
+  }
   const { cost_analytics: costs, kpi_trends: trends } = data.analytics;
-  add("KPI", "Monthly spend", data.totalMonthlySpend, currency, department);
-  add("KPI", "Monthly budget limit", data.monthlyLimit, currency, "Company");
-  add("KPI", "Budget utilization", data.budgetUtilization, "%", department);
+  add("KPI", "Period spend", data.analytics.period ? data.analytics.period.total : data.totalMonthlySpend, currency, department);
+  add("KPI", "Period budget limit", data.analytics.period?.budget ?? data.monthlyLimit, currency, "Company");
+  add("KPI", "Budget utilization", data.analytics.period && data.analytics.period.total === null ? null : data.budgetUtilization, "%", department);
   add("KPI", "Average cost per user", costs.cost_per_user, currency, department);
-  add("KPI", "Unique active users (month to date)", costs.active_users, "users", department);
+  add("KPI", "Unique active users (selected period)", costs.active_users, "users", department);
   add("KPI", "Cumulative tool users", costs.cumulative_tool_users, "tool users", department);
   add("KPI", "Total users", costs.total_users, "users", department);
   add("KPI", "Potential monthly savings", data.potentialSavings, currency, department);

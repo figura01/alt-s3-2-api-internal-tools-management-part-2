@@ -24,11 +24,11 @@ export function AnalyticsDashboard({ data }: Props) {
   const [department, setDepartment] = useState("all");
   const currency = useAppStore((state) => state.currency);
 
-  const scoped = useQuery({ queryKey: ["analytics-kpi", department], queryFn: () => getAnalytics(department), enabled: department !== "all" });
-  const waiting = department !== "all" && !scoped.data;
+  const scoped = useQuery({ queryKey: ["analytics-kpi", department, range], queryFn: () => getAnalytics(department, range) });
+  const waiting = !scoped.data;
   const filteredData = useMemo(() => {
     const filtered = filterAnalyticsDashboardData(data, department);
-    const analytics = department === "all" ? data.analytics : scoped.data;
+    const analytics = scoped.data;
     return analytics ? { ...filtered, analytics, totalMonthlySpend: analytics.budget_overview.current_month_total, budgetUtilization: analytics.budget_overview.budget_utilization } : filtered;
   }, [data, department, scoped.data]);
 
@@ -50,8 +50,8 @@ export function AnalyticsDashboard({ data }: Props) {
         }}
       />
 
-      {waiting ? <p role={scoped.isError ? "alert" : "status"}>{scoped.isError ? <button onClick={() => scoped.refetch()}>Unable to load department indicators. Retry</button> : "Loading department indicators…"}</p> : <AnalyticsKpiCards data={filteredData} />}
-      <p className="text-sm text-muted-foreground">Unique users: active accounts with recorded sessions this month, within the selected department and its tools. Cost per user compares this month so far with the previous full month. Budget limit is company-wide. Missing history is shown as —.</p>
+      {waiting ? <p role={scoped.isError ? "alert" : "status"}>{scoped.isError ? <button onClick={() => scoped.refetch()}>Unable to load period indicators. Retry</button> : "Loading period indicators…"}</p> : <AnalyticsKpiCards data={filteredData} />}
+      <p className="text-sm text-muted-foreground">Spending and unique active users follow the selected calendar months, including the current partial month. Trends compare with the preceding period of the same duration. Budget assumes the current monthly company limit for each month. Savings, tool counts and breakdowns describe the current catalogue. Missing history is shown as —.</p>
       <CostAnalyticsSection data={filteredData} range={range} />
       <UsageAnalyticsSection data={filteredData} />
       <InsightsSection data={filteredData} />
