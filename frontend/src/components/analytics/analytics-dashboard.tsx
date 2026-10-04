@@ -8,6 +8,7 @@ import { useAppStore } from "@/store/store";
 import { downloadAnalyticsCsv } from "@/utils/export-analytics";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
+import { AnalyticsInfo } from "./analytics-info";
 import { AnalyticsHeader } from "./analytics-header";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
 import { CostAnalyticsSection } from "./cost-analytics-section";
@@ -52,7 +53,10 @@ export function AnalyticsDashboard({ data }: Props) {
       />
 
       {waiting ? <p role={scoped.isError ? "alert" : "status"}>{scoped.isError ? <button onClick={() => scoped.refetch()}>Unable to load period indicators. Retry</button> : "Loading period indicators…"}</p> : <AnalyticsKpiCards data={filteredData} />}
-      <p className="text-sm text-muted-foreground">Spending and unique active users follow the selected calendar months, including the current partial month. Trends compare with the preceding period of the same duration. Budget assumes the current monthly company limit for each month. The fourth KPI shows period spending on tools without logged usage, which is not a guaranteed saving. Charts use recorded period costs and distinct logged users; departments reflect current tool ownership. Renewal and savings insights describe the current catalogue. Missing history is shown as —.</p>
+      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+        <p>Selected period · current month partial · — means unavailable</p>
+        <AnalyticsInfo label="About Analytics data">Spending and unique active users follow the selected calendar months, including the current partial month. Trends compare with the preceding period of the same duration. Budget assumes the current monthly company limit for each month. The fourth KPI shows period spending on tools without logged usage, which is not a guaranteed saving. Charts use recorded period costs and distinct logged users; departments reflect current tool ownership. Renewal and savings insights describe the current catalogue. Missing history is shown as —.</AnalyticsInfo>
+      </div>
       {!waiting && !scoped.isError && <>
         <CostAnalyticsSection data={filteredData} range={range} />
         <UsageAnalyticsSection data={filteredData} />

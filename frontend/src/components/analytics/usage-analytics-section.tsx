@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
+import { AnalyticsInfo } from "./analytics-info";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomProgress } from "@/components/ui/custom-progress";
@@ -22,8 +23,8 @@ export function UsageAnalyticsSection({ data }: Props) {
     <section className="grid gap-6 xl:grid-cols-2">
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Tool User Counts</CardTitle>
-          <p className="text-sm text-muted-foreground">Distinct users with logged sessions in the selected period. A user can appear on several tools.</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Tool User Counts</CardTitle><AnalyticsInfo label="About Tool User Counts">Distinct users with positive logged sessions in the selected period, counted once per tool. One user can appear on several tools.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">Distinct logged users per tool</p>
         </CardHeader>
 
         <CardContent className="space-y-5">
@@ -61,8 +62,8 @@ export function UsageAnalyticsSection({ data }: Props) {
 
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Most / Least Used Tools</CardTitle>
-          <p className="text-sm text-muted-foreground">Tools with recorded costs or usage during the selected period; ranked by distinct logged users.</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Most / Least Used Tools</CardTitle><AnalyticsInfo label="About tool usage rankings">Tools with recorded costs or usage during the selected period, ranked by distinct logged users. Zero means no positive logged session; it does not prove the tool was never used.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">Ranked by distinct logged users</p>
         </CardHeader>
 
         <CardContent className="grid gap-4 md:grid-cols-2">

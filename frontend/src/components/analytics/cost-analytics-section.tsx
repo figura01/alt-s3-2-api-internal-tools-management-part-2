@@ -30,6 +30,7 @@ import { useAppStore } from "@/store/store";
 
 import { getDepartmentYearComparison, getPeriodChartData } from "@/utils/period-chart-data";
 
+import { AnalyticsInfo } from "./analytics-info";
 import { DepartmentSpendingShare } from "./department-spending-share";
 import { DepartmentComparisonTooltip } from "./department-comparison-tooltip";
 
@@ -72,13 +73,12 @@ export function CostAnalyticsSection({ data, range }: Props) {
     <section className="grid gap-6 xl:grid-cols-2">
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Monthly Spend Evolution</CardTitle>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Monthly Spend Evolution</CardTitle><AnalyticsInfo label="About Monthly Spend Evolution">Recorded monthly costs. Automatic snapshots retain the first observed catalogue cost each month. Missing months remain empty. Current month may be incomplete. Departments reflect current tool ownership.</AnalyticsInfo></div>
           <p className="text-sm text-muted-foreground">{periodCaption(false)} · comparison {periodCaption(true)}</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Chart legend">
             <span className="flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-[3px] border-blue-500" />Selected period · current month partial</span>
             <span className="flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-[3px] border-dashed border-slate-400" />{previousName}</span>
           </div>
-          <p className="text-sm text-muted-foreground">Recorded monthly costs; automatic snapshots use the first observed catalogue cost each month. Missing months remain empty. Current month may be incomplete. Departments reflect current tool ownership.</p>
         </CardHeader>
 
         <CardContent className="h-80">
@@ -130,8 +130,8 @@ export function CostAnalyticsSection({ data, range }: Props) {
 
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Department Cost Breakdown</CardTitle>
-          <p className="text-sm text-muted-foreground">Recorded spending in the selected period · {periodCaption(false)}</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Department Cost Breakdown</CardTitle><AnalyticsInfo label="About Department Cost Breakdown">Share of recorded costs in the selected period. Departments reflect current tool ownership; absent costs are not estimated.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">{periodCaption(false)}</p>
         </CardHeader>
 
         <CardContent className="h-80">
@@ -168,13 +168,13 @@ export function CostAnalyticsSection({ data, range }: Props) {
 
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Department Spending · Year Comparison</CardTitle>
-          <p className="text-sm text-muted-foreground">{periodCaption(false)} · same calendar months last year{yearPeriod ? ` · ${formatSpendMonth(yearPeriod.start.slice(0, 7), locale)} – ${formatSpendMonth(new Date(new Date(yearPeriod.end).getTime() - 1).toISOString().slice(0, 7), locale)}` : ""}</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Department Spending · Year Comparison</CardTitle><AnalyticsInfo label="About Department Spending · Year Comparison">Same calendar months one year earlier. Current month is partial; last year’s months are complete. Missing history remains empty. Departments reflect current tool ownership. Differences require all months recorded.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">{periodCaption(false)} · vs{yearPeriod ? ` · ${formatSpendMonth(yearPeriod.start.slice(0, 7), locale)} – ${formatSpendMonth(new Date(new Date(yearPeriod.end).getTime() - 1).toISOString().slice(0, 7), locale)}` : ""}</p>
           <div className="flex flex-wrap gap-5 text-sm" aria-label="Department comparison legend">
             <span><span aria-hidden="true" className="mr-2 inline-block h-3 w-3 rounded bg-blue-500" />Selected period</span>
             <span><span aria-hidden="true" className="mr-2 inline-block h-3 w-3 rounded bg-slate-400" />Same period last year</span>
           </div>
-          <p className="text-sm text-muted-foreground">Recorded costs; current month partial, last year’s months complete. Missing history remains empty. Departments reflect current tool ownership.</p>
+          <p className="text-xs text-muted-foreground">Current month partial · N−1 complete months</p>
         </CardHeader>
         <CardContent style={{ height: Math.max(240, comparison.length * 80) }}>
           {comparison.length ? <ResponsiveContainer width="100%" height="100%">
@@ -194,8 +194,8 @@ export function CostAnalyticsSection({ data, range }: Props) {
 
       <Card className="glass-card rounded-2xl xl:col-span-2">
         <CardHeader>
-          <CardTitle>Top Expensive Tools</CardTitle>
-          <p className="text-sm text-muted-foreground">Ranked by recorded spending in the selected period · {periodCaption(false)}</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Top Expensive Tools</CardTitle><AnalyticsInfo label="About Top Expensive Tools">Tools ranked by total recorded spending in the selected period. Missing costs are not estimated. Departments reflect current tool ownership.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">{periodCaption(false)}</p>
         </CardHeader>
 
         <CardContent className="h-80">

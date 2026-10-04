@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/empty-state";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
 import { getPeriodChartData } from "@/utils/period-chart-data";
+import { AnalyticsInfo } from "./analytics-info";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 export function DepartmentSpendingShare({ data, height }: { data: AnalyticsDashboardData; height: number }) {
@@ -14,8 +15,8 @@ export function DepartmentSpendingShare({ data, height }: { data: AnalyticsDashb
   return (
       <Card className="glass-card rounded-2xl">
         <CardHeader>
-          <CardTitle>Department Share of Spending</CardTitle>
-          <p className="text-sm text-muted-foreground">Share of recorded spending within the selected department scope and period.</p>
+          <div className="flex items-center justify-between gap-3"><CardTitle>Department Share of Spending</CardTitle><AnalyticsInfo label="About Department Share of Spending">Share of total recorded spending within the selected period and department filter. Departments reflect current tool ownership. No share is calculated when total recorded spending is zero.</AnalyticsInfo></div>
+          <p className="text-sm text-muted-foreground">Share of selected-period spending</p>
         </CardHeader>
 
         <CardContent style={{ height }}>

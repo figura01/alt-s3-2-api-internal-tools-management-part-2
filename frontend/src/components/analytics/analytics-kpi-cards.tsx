@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
+import { AnalyticsInfo } from "./analytics-info";
 import { SingleCardKpi } from "@/components/analytics/SingleCardKpi";
 import { useAppStore } from "@/store/store";
 import { formatPercentage, formatCurrency } from "@/utils/format";
@@ -64,7 +65,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           label: analytics.period_usage ? `${analytics.period_usage.active_users_change > 0 ? "+" : ""}${analytics.period_usage.active_users_change} vs previous period` : "Logged sessions",
           className: "gradient-green",
         }}
-        description={`${analytics.cost_analytics.cumulative_tool_users} tool-user pairs in the selected period (not unique users)`}
+        description={<span className="inline-flex items-center gap-1">{analytics.cost_analytics.cumulative_tool_users} tool-user pairs<AnalyticsInfo label="About unique active users">Active accounts with logged sessions in the selected period. Tool-user pairs count each user once per tool, so one person can count on several tools.</AnalyticsInfo></span>}
       />
 
       <SingleCardKpi
@@ -75,7 +76,7 @@ export function AnalyticsKpiCards({ data }: Props) {
           label: analytics.period_usage ? `${analytics.period_usage.tools_without_usage} without logged usage` : `${data.unusedTools.length} unused`,
           variant: "destructive",
         }}
-        description={analytics.period_usage ? "Period costs for tools with no logged sessions; review before treating as savings" : "Current potential savings / month"}
+        description={analytics.period_usage ? <span className="inline-flex items-center gap-1">No logged sessions<AnalyticsInfo label="About spend without usage">Recorded period costs for tools with no positive logged sessions in this period. Missing sessions do not prove a tool is unused; review these costs before treating them as savings.</AnalyticsInfo></span> : "Current potential savings / month"}
       />
     </section>
   );
