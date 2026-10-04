@@ -6,11 +6,14 @@ import type {
 } from "recharts/types/component/DefaultTooltipContent";
 
 import type { TooltipContentProps } from "recharts";
-import { formatCurrency } from "@/utils/formatCurrency";
+import { formatCurrency, formatPercentage } from "@/utils/format";
+import { useAppStore } from "@/store/store";
 
-type Props = Partial<TooltipContentProps<ValueType, NameType>>;
+type Props = Partial<TooltipContentProps<ValueType, NameType>> & { unit?: "currency" | "percent" };
 
-export function ChartTooltip({ active, payload, label }: Props) {
+export function ChartTooltip({ active, payload, label, unit = "currency" }: Props) {
+  const locale = useAppStore((state) => state.locale);
+  const currency = useAppStore((state) => state.currency);
   if (!active || !payload?.length) {
     return null;
   }
@@ -29,7 +32,7 @@ export function ChartTooltip({ active, payload, label }: Props) {
 
             <span className="font-medium">
               {typeof entry.value === "number"
-                ? formatCurrency(entry.value)
+                ? unit === "percent" ? formatPercentage(entry.value, locale) : formatCurrency(entry.value, locale, currency)
                 : String(entry.value ?? "N/A")}
             </span>
           </div>

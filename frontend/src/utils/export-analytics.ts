@@ -1,4 +1,5 @@
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
+import { getPeriodChartData } from "./period-chart-data";
 import { getSpendComparisonByRange } from "./analytics-range";
 
 type ExportOptions = {
@@ -32,7 +33,7 @@ export function buildAnalyticsCsv(
   add("Metadata", "Exported at (UTC)", exportedAt.toISOString());
   add("Metadata", "Department", department === "all" ? "All departments" : department);
   add("Metadata", "Selected period", range);
-  add("Metadata", "Data scope", "KPI spending, unique active users and costs without logged usage follow the selected period. Catalogue breakdowns remain current snapshots.");
+  add("Metadata", "Data scope", "KPI spending, unique active users and costs without logged usage follow the selected period. Chart costs and logged users follow the selected period. Catalogue and renewal information remain current snapshots.");
   add("Metadata", "Currency", `${currency} (display setting; no currency conversion)`);
   add("Metadata", "Historical data", "Spend evolution uses recorded monthly costs; automatic snapshots retain the first observed catalogue cost each month; blank means no records, not zero. Periods include the current month (possibly incomplete). Departments reflect current tool ownership. KPI trends use the selected department; unavailable values are blank.");
   add("Metadata", "User counts", "Unique active accounts with logged sessions in the selected period on tools in the selected scope. Cumulative tool users are separate. Total users are active accounts in the selected department; budget limit remains company-wide.");
@@ -58,11 +59,12 @@ export function buildAnalyticsCsv(
     add("KPI", "Potential monthly savings", data.potentialSavings, currency, department);
     add("KPI", "Unused tools", data.unusedTools.length, "tools", department);
   }
-  add("KPI", "Expiring tools", data.expiringTools.length, "tools", department);
+  add("KPI", "Currently expiring tools", data.expiringTools.length, "tools", department);
   for (const [metric, value] of Object.entries(trends)) {
     add("KPI trends", metric, value, metric === "cost_per_user_change" ? currency : "%", department);
   }
-  for (const item of data.departmentCosts) {
+  const charts = getPeriodChartData(data.analytics);
+  for (const item of data.analytics.period ? charts.departments : data.departmentCosts) {
     add("Department costs", item.name, item.value, currency, item.name);
   }
   for (const point of getSpendComparisonByRange(data.spendHistory, range)) {
@@ -74,22 +76,34 @@ export function buildAnalyticsCsv(
     add("Spend change", `${point.label} vs ${point.previousLabel}`, point.percentage, "%", department);
   }
   for (const [section, tools] of [
-    ["Tools", data.tools],
-    ["Most expensive tools", data.topExpensiveTools],
-    ["Unused tools", data.unusedTools],
-    ["Expiring tools", data.expiringTools],
+    ["Current catalogue", data.tools],
+    ...(!data.analytics.period ? [["Most expensive tools", data.topExpensiveTools] as const] : []),
+    ["Currently unused tools", data.unusedTools],
+    ["Currently expiring tools", data.expiringTools],
   ] as const) {
     for (const tool of tools) {
       rows.push([section, tool.name, tool.monthly_cost, currency, tool.owner_department,
         tool.category, tool.vendor ?? "", tool.status, tool.active_users_count, tool.id]);
     }
   }
-  for (const [section, tools] of [
-    ["Most used tools", data.mostUsedTools],
-    ["Least used tools", data.leastUsedTools],
-  ] as const) {
-    for (const tool of tools) {
-      rows.push([section, tool.name, tool.monthly_cost, currency, department, "", "", "", tool.users, tool.id ?? ""]);
+  if (data.analytics.period) {
+    for (const item of charts.departmentShares) add("Department spend share", item.name, item.activity, "%", item.name);
+    for (const [section, tools] of [
+      ["Period tool costs and usage", data.analytics.period_breakdown?.tools ?? []],
+      ["Most expensive tools (period)", charts.topExpensive],
+      ["Most used tools (period)", charts.mostUsed],
+      ["Least used tools (period)", charts.leastUsed],
+    ] as const) {
+      for (const tool of tools) {
+        rows.push([section, tool.name, tool.total, currency, tool.department, "", "", "", tool.users, tool.id]);
+      }
+    }
+  } else {
+    for (const [section, tools] of [
+      ["Most used tools", data.mostUsedTools],
+      ["Least used tools", data.leastUsedTools],
+    ] as const) {
+      for (const tool of tools) rows.push([section, tool.name, tool.monthly_cost, currency, department, "", "", "", tool.users, tool.id ?? ""]);
     }
   }
   // UTF-8 BOM preserves accents when opened in Excel; CRLF follows CSV conventions.

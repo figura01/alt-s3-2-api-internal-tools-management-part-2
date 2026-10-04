@@ -10,7 +10,7 @@ describe('period analytics', () => {
       costTracking: { findMany: jest.fn().mockResolvedValue(months.map(month => ({ month: new Date(`${month}-01T00:00:00Z`), cost: 10.10, toolId: "tool-1" }))) },
       user: { count: jest.fn().mockResolvedValueOnce(2).mockResolvedValueOnce(1).mockResolvedValueOnce(5) },
       usageLog: { findMany: jest.fn().mockResolvedValue([]) },
-      tool: { findMany: jest.fn().mockResolvedValue([{ activeUsersCount: 7 }]) },
+      tool: { findMany: jest.fn().mockResolvedValue([{ id: "tool-1", name: "Tool 1", ownerDepartment: { name: "Engineering" } }, { id: "tool-2", name: "Tool 2", ownerDepartment: { name: "Engineering" } }]) },
     };
     return { prisma, service: new AnalyticsService(prisma as never) };
   }
@@ -63,5 +63,41 @@ describe('period analytics', () => {
     prisma.usageLog.findMany.mockResolvedValue([{ toolId: 'tool-1', userId: 'u1', usageDate: new Date('2026-02-10') }] as never);
     expect((await service.getAnalytics(undefined, '1m')).period_usage?.spend_without_usage).toBe(0);
     expect((await service.getAnalytics(undefined, '3m')).period_usage?.spend_without_usage).toBeNull();
+  });
+  it('groups period costs by tool and department and counts each logged user once per tool', async () => {
+    const { service, prisma } = setup([]);
+    prisma.tool.findMany.mockResolvedValue([
+      { id: 'tool-1', name: 'A', ownerDepartment: { name: 'Engineering' } },
+      { id: 'tool-2', name: 'B', ownerDepartment: { name: 'Sales' } },
+      { id: 'tool-3', name: 'C', ownerDepartment: { name: 'Sales' } },
+      { id: 'tool-4', name: 'New catalogue only', ownerDepartment: { name: 'Sales' } },
+    ]);
+    prisma.costTracking.findMany.mockResolvedValue([
+      { month: new Date('2025-11-01'), cost: 999, toolId: 'tool-1' },
+      { month: new Date('2025-12-01'), cost: 0.1, toolId: 'tool-1' },
+      { month: new Date('2026-01-01'), cost: 0.2, toolId: 'tool-1' },
+      { month: new Date('2026-02-01'), cost: 20, toolId: 'tool-2' },
+    ]);
+    prisma.usageLog.findMany.mockResolvedValue([
+      { toolId: 'tool-1', userId: 'u1', usageDate: new Date('2025-11-10') },
+      { toolId: 'tool-1', userId: 'u1', usageDate: new Date('2026-01-10') },
+      { toolId: 'tool-1', userId: 'u1', usageDate: new Date('2026-02-10') },
+      { toolId: 'tool-1', userId: 'u2', usageDate: new Date('2026-02-11') },
+      { toolId: 'tool-3', userId: 'u2', usageDate: new Date('2026-02-11') },
+    ] as never);
+    const result = await service.getAnalytics(undefined, '3m');
+    expect(result.period_breakdown).toEqual({
+      departments: [{ name: 'Sales', total: 20, recorded_months: 1 }, { name: 'Engineering', total: 0.3, recorded_months: 2 }],
+      tools: [
+        { id: 'tool-1', name: 'A', department: 'Engineering', total: 0.3, users: 2, recorded_months: 2 },
+        { id: 'tool-2', name: 'B', department: 'Sales', total: 20, users: 0, recorded_months: 1 },
+        { id: 'tool-3', name: 'C', department: 'Sales', total: null, users: 1, recorded_months: 0 },
+      ],
+    });
+    expect(result.period_breakdown!.departments.reduce((sum, item) => sum + item.total, 0)).toBe(result.period!.total);
+  });
+  it('keeps empty period breakdowns empty instead of substituting catalogue costs', async () => {
+    const { service } = setup([]);
+    expect((await service.getAnalytics(undefined, '1m')).period_breakdown).toEqual({ departments: [], tools: [] });
   });
 });

@@ -697,11 +697,12 @@ export class AnalyticsService {
     const usersIn = (gte: Date, lt: Date) => this.prisma.user.count({ where: {
       ...userWhere, usageLogs: { some: { usageDate: { gte, lt }, sessionCount: { gt: 0 }, tool: toolWhere } },
     } });
-    const [records, activeUsers, previousUsers, totalUsers, usage] = await Promise.all([
+    const [records, activeUsers, previousUsers, totalUsers, usage, tools] = await Promise.all([
       this.prisma.costTracking.findMany({ where: { month: { gte: previousStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true, toolId: true } }),
       usersIn(start, now), usersIn(previousStart, start),
       this.prisma.user.count({ where: userWhere }),
       this.prisma.usageLog.findMany({ where: { usageDate: { gte: previousStart, lt: now }, sessionCount: { gt: 0 }, tool: toolWhere }, select: { toolId: true, userId: true, usageDate: true } }),
+      this.prisma.tool.findMany({ where: toolWhere, select: { id: true, name: true, ownerDepartment: { select: { name: true } } } }),
     ]);
     const summarize = (from: Date, to: Date) => {
       const rows = records.filter(row => row.month >= from && row.month < to);
@@ -724,7 +725,40 @@ export class AnalyticsService {
     };
     const noUsage = spendWithoutUsage(start, end);
     const previousNoUsage = spendWithoutUsage(previousStart, start);
+    const toolCosts = new Map<string, { cents: number; months: Set<string> }>();
+    for (const row of records) {
+      if (row.month < start || row.month >= end) continue;
+      const item = toolCosts.get(row.toolId) ?? { cents: 0, months: new Set<string>() };
+      item.cents += Math.round(Number(row.cost) * 100);
+      item.months.add(row.month.toISOString().slice(0, 7));
+      toolCosts.set(row.toolId, item);
+    }
+    const toolUsers = new Map<string, Set<string>>();
+    for (const row of currentUsage) {
+      const users = toolUsers.get(row.toolId) ?? new Set<string>();
+      users.add(row.userId);
+      toolUsers.set(row.toolId, users);
+    }
+    const periodTools = tools.filter(tool => toolCosts.has(tool.id) || toolUsers.has(tool.id)).map(tool => ({
+      id: tool.id, name: tool.name, department: tool.ownerDepartment.name,
+      total: toolCosts.has(tool.id) ? toolCosts.get(tool.id)!.cents / 100 : null,
+      users: toolUsers.get(tool.id)?.size ?? 0,
+      recorded_months: toolCosts.get(tool.id)?.months.size ?? 0,
+    }));
+    const departmentCosts = new Map<string, { cents: number; months: Set<string> }>();
+    for (const tool of tools) {
+      const costs = toolCosts.get(tool.id);
+      if (!costs) continue;
+      const item = departmentCosts.get(tool.ownerDepartment.name) ?? { cents: 0, months: new Set<string>() };
+      item.cents += costs.cents;
+      for (const month of costs.months) item.months.add(month);
+      departmentCosts.set(tool.ownerDepartment.name, item);
+    }
     return {
+      period_breakdown: {
+        departments: [...departmentCosts].map(([name, value]) => ({ name, total: value.cents / 100, recorded_months: value.months.size })).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name)),
+        tools: periodTools.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)),
+      },
       period_usage: { spend_without_usage: complete ? noUsage.total : null, tools_without_usage: noUsage.tools, previous_spend_without_usage: previousTotal !== null ? previousNoUsage.total : null, active_users_change: activeUsers - previousUsers },
       period: { start: start.toISOString(), end: now.toISOString(), months, recorded_months: current.coveredMonths, total: current.coveredMonths ? current.total : null, budget: MONTHLY_BUDGET * months },
       budget_overview: { monthly_limit: MONTHLY_BUDGET, current_month_total: current.total, previous_month_total: previousTotal, budget_utilization: current.total / (MONTHLY_BUDGET * months) * 100, trend_percentage: change },

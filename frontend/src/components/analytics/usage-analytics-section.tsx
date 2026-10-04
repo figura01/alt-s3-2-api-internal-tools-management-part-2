@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomProgress } from "@/components/ui/custom-progress";
 import { EmptyState } from "@/components/empty-state";
 import { ChartTooltip } from "@/components/charts/chart-tooltip";
+import { getPeriodChartData } from "@/utils/period-chart-data";
+
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 type Props = {
@@ -24,22 +26,23 @@ type Props = {
 
 export function UsageAnalyticsSection({ data }: Props) {
   const isMobile = useIsMobile();
-  const maxUsers = Math.max(...data.mostUsedTools.map((tool) => tool.users), 1);
-  const departmentActivity = data.departmentCosts.map((department) => ({
-    name: department.name,
-    activity: data.totalMonthlySpend > 0 ? Math.round((department.value / data.totalMonthlySpend) * 100) : 0,
-  }));
+  const charts = getPeriodChartData(data.analytics);
+  const mostUsedTools = charts.mostUsed;
+  const leastUsedTools = charts.leastUsed;
+  const maxUsers = Math.max(...mostUsedTools.map(tool => tool.users), 1);
+  const departmentActivity = charts.departmentShares;
 
   return (
     <section className="grid gap-6 xl:grid-cols-2">
       <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Tool User Counts</CardTitle>
+          <p className="text-sm text-muted-foreground">Distinct users with logged sessions in the selected period. A user can appear on several tools.</p>
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {data.mostUsedTools.length > 0 ? (
-            data.mostUsedTools.map((tool) => {
+          {mostUsedTools.length > 0 ? (
+            mostUsedTools.map((tool) => {
               const value = Math.round((tool.users / maxUsers) * 100);
 
               return (
@@ -64,7 +67,7 @@ export function UsageAnalyticsSection({ data }: Props) {
           ) : (
             <EmptyState
               title="No adoption data"
-              description="Try another department filter."
+              description="No logged sessions for this department and period."
             />
           )}
         </CardContent>
@@ -73,6 +76,7 @@ export function UsageAnalyticsSection({ data }: Props) {
       <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Most / Least Used Tools</CardTitle>
+          <p className="text-sm text-muted-foreground">Tools with recorded costs or usage during the selected period; ranked by distinct logged users.</p>
         </CardHeader>
 
         <CardContent className="grid gap-4 md:grid-cols-2">
@@ -81,8 +85,8 @@ export function UsageAnalyticsSection({ data }: Props) {
               Most used
             </h3>
 
-            {data.mostUsedTools.length > 0 ? (
-              data.mostUsedTools.map((tool, index) => (
+            {mostUsedTools.length > 0 ? (
+              mostUsedTools.map((tool, index) => (
                 <div
                   key={tool.id ?? tool.name}
                   className="flex items-center justify-between rounded-xl border border-border/60 bg-card/50 p-3"
@@ -91,7 +95,7 @@ export function UsageAnalyticsSection({ data }: Props) {
                     <p className="font-medium">{tool.name}</p>
 
                     <p className="text-xs text-muted-foreground">
-                      #{index + 1} by tool user count
+                      #{index + 1} by period user count
                     </p>
                   </div>
 
@@ -110,8 +114,8 @@ export function UsageAnalyticsSection({ data }: Props) {
               Least used
             </h3>
 
-            {data.leastUsedTools.length > 0 ? (
-              data.leastUsedTools.map((tool, index) => (
+            {leastUsedTools.length > 0 ? (
+              leastUsedTools.map((tool, index) => (
                 <div
                   key={tool.id ?? tool.name}
                   className="flex items-center justify-between rounded-xl border border-border/60 bg-card/50 p-3"
@@ -120,7 +124,7 @@ export function UsageAnalyticsSection({ data }: Props) {
                     <p className="font-medium">{tool.name}</p>
 
                     <p className="text-xs text-muted-foreground">
-                      #{index + 1} low tool user count
+                      #{index + 1} low period user count
                     </p>
                   </div>
 
@@ -137,6 +141,7 @@ export function UsageAnalyticsSection({ data }: Props) {
       <Card className="glass-card rounded-2xl xl:col-span-2">
         <CardHeader>
           <CardTitle>Department Share of Spending</CardTitle>
+          <p className="text-sm text-muted-foreground">Share of recorded spending within the selected department scope and period.</p>
         </CardHeader>
 
         <CardContent className="h-80">
@@ -166,12 +171,13 @@ export function UsageAnalyticsSection({ data }: Props) {
                   }}
                 />
 
-                <YAxis />
+                <YAxis tickFormatter={(value: number) => `${value}%`} domain={[0, 100]} />
 
-                <Tooltip content={<ChartTooltip />} />
+                <Tooltip content={<ChartTooltip unit="percent" />} />
 
                 <Bar
                   dataKey="activity"
+                  name="Share of spending"
                   fill="url(#departmentActivityGradient)"
                   radius={[12, 12, 0, 0]}
                 />

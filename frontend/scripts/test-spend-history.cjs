@@ -5,7 +5,7 @@ const ts = require('typescript');
 function load(file) {
   const module = { exports: {} };
   const source = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
-  new Function('require', 'module', 'exports', source)(() => load('src/utils/analytics-range.ts'), module, module.exports);
+  new Function('require', 'module', 'exports', source)(name => load(`src/utils/${name.replace('./', '')}.ts`), module, module.exports);
   return module.exports;
 }
 const { getSpendEvolutionByRange } = load('src/utils/analytics-range.ts');

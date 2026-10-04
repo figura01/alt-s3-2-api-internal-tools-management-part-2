@@ -28,6 +28,8 @@ import { getSpendComparisonByRange, getPreviousPeriodLabel, formatSpendMonth } f
 import { SpendComparisonTooltip } from "./spend-comparison-tooltip";
 import { useAppStore } from "@/store/store";
 
+import { getPeriodChartData } from "@/utils/period-chart-data";
+
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
 type Props = {
@@ -57,10 +59,9 @@ export function CostAnalyticsSection({ data, range }: Props) {
     return start === end ? formatSpendMonth(start, locale) : `${formatSpendMonth(start, locale)} – ${formatSpendMonth(end, locale)}`;
   };
 
-  const topExpensiveTools = data.topExpensiveTools.map((tool) => ({
-    name: tool.name,
-    cost: tool.monthly_cost,
-  }));
+  const charts = getPeriodChartData(data.analytics);
+  const departmentCosts = charts.departments.filter(item => item.value > 0);
+  const topExpensiveTools = charts.topExpensive.map(tool => ({ name: tool.name, cost: tool.total }));
 
   return (
     <section className="grid gap-6 xl:grid-cols-2">
@@ -125,21 +126,22 @@ export function CostAnalyticsSection({ data, range }: Props) {
       <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Department Cost Breakdown</CardTitle>
+          <p className="text-sm text-muted-foreground">Recorded spending in the selected period · {periodCaption(false)}</p>
         </CardHeader>
 
         <CardContent className="h-80">
-          {data.departmentCosts.length > 0 ? (
+          {departmentCosts.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.departmentCosts}
+                  data={departmentCosts}
                   dataKey="value"
                   nameKey="name"
                   innerRadius={70}
                   outerRadius={110}
                   paddingAngle={4}
                 >
-                  {data.departmentCosts.map((_, index) => (
+                  {departmentCosts.map((_, index) => (
                     <Cell
                       key={index}
                       fill={chartColors[index % chartColors.length]}
@@ -153,7 +155,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
           ) : (
             <EmptyState
               title="No department data"
-              description="No costs available for this department."
+              description="No positive recorded spending for this department and period."
             />
           )}
         </CardContent>
@@ -162,6 +164,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
       <Card className="glass-card rounded-2xl xl:col-span-2">
         <CardHeader>
           <CardTitle>Top Expensive Tools</CardTitle>
+          <p className="text-sm text-muted-foreground">Ranked by recorded spending in the selected period · {periodCaption(false)}</p>
         </CardHeader>
 
         <CardContent className="h-80">
@@ -193,6 +196,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
 
                 <Bar
                   dataKey="cost"
+                  name="Period spend"
                   fill="url(#barGradient)"
                   radius={[0, 12, 12, 0]}
                 />
@@ -201,7 +205,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
           ) : (
             <EmptyState
               title="No expensive tools"
-              description="No tool cost data available."
+              description="No positive recorded tool costs for this department and period."
             />
           )}
         </CardContent>

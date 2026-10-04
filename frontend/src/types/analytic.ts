@@ -21,7 +21,13 @@ export type CostAnalytics = {
   total_users: number;
 };
 
+export type PeriodBreakdown = {
+  departments: { name: string; total: number; recorded_months: number }[];
+  tools: { id: string; name: string; department: string; total: number | null; users: number; recorded_months: number }[];
+};
+
 export type Analytics = {
+  period_breakdown?: PeriodBreakdown;
   period_usage?: { spend_without_usage: number | null; tools_without_usage: number; previous_spend_without_usage: number | null; active_users_change: number };
   period?: { start: string; end: string; months: number; recorded_months: number; total: number | null; budget: number };
   budget_overview: BudgetOverview;
