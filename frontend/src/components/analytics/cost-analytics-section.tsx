@@ -30,6 +30,7 @@ import { useAppStore } from "@/store/store";
 
 import { getDepartmentYearComparison, getPeriodChartData } from "@/utils/period-chart-data";
 
+import { DepartmentSpendingShare } from "./department-spending-share";
 import { DepartmentComparisonTooltip } from "./department-comparison-tooltip";
 
 import { useIsMobile } from "@/hooks/use-is-mobile";
@@ -165,7 +166,7 @@ export function CostAnalyticsSection({ data, range }: Props) {
         </CardContent>
       </Card>
 
-      <Card className="glass-card rounded-2xl xl:col-span-2">
+      <Card className="glass-card rounded-2xl">
         <CardHeader>
           <CardTitle>Department Spending · Year Comparison</CardTitle>
           <p className="text-sm text-muted-foreground">{periodCaption(false)} · same calendar months last year{yearPeriod ? ` · ${formatSpendMonth(yearPeriod.start.slice(0, 7), locale)} – ${formatSpendMonth(new Date(new Date(yearPeriod.end).getTime() - 1).toISOString().slice(0, 7), locale)}` : ""}</p>
@@ -188,6 +189,8 @@ export function CostAnalyticsSection({ data, range }: Props) {
           </ResponsiveContainer> : <EmptyState title="No department comparison data" description="No recorded costs for these periods and department scope." />}
         </CardContent>
       </Card>
+
+      <DepartmentSpendingShare data={data} height={Math.max(240, comparison.length * 80)} />
 
       <Card className="glass-card rounded-2xl xl:col-span-2">
         <CardHeader>
