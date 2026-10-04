@@ -1,5 +1,5 @@
 import type { AnalyticsDashboardData } from "@/types/analytics-dashboard";
-import { getPeriodChartData } from "./period-chart-data";
+import { getDepartmentYearComparison, getPeriodChartData } from "./period-chart-data";
 import { getSpendComparisonByRange } from "./analytics-range";
 
 type ExportOptions = {
@@ -66,6 +66,19 @@ export function buildAnalyticsCsv(
   const charts = getPeriodChartData(data.analytics);
   for (const item of data.analytics.period ? charts.departments : data.departmentCosts) {
     add("Department costs", item.name, item.value, currency, item.name);
+  }
+  if (data.analytics.department_year_comparison) {
+    add("Metadata", "Department N-1 start (UTC)", data.analytics.department_year_comparison.start);
+    add("Metadata", "Department N-1 end exclusive (UTC)", data.analytics.department_year_comparison.end);
+    add("Metadata", "Department comparison", "Same calendar months last year; current month partial, last year complete. Differences require all months recorded. Departments reflect current tool ownership.");
+  }
+  for (const item of getDepartmentYearComparison(data.analytics)) {
+    add("Department selected period", item.name, item.current, currency, item.name);
+    add("Department same period last year", item.name, item.previous, currency, item.name);
+    add("Department year difference", item.name, item.difference, currency, item.name);
+    add("Department year change", item.name, item.percentage, "%", item.name);
+    add("Department current months recorded", item.name, item.current_recorded_months, "months", item.name);
+    add("Department N-1 months recorded", item.name, item.previous_recorded_months, "months", item.name);
   }
   for (const point of getSpendComparisonByRange(data.spendHistory, range)) {
     add("Spend evolution", point.label, point.spend ?? "", currency, department);

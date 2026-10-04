@@ -692,13 +692,15 @@ export class AnalyticsService {
     const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - months + 1, 1));
     const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
     const previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 2 * months + 1, 1));
+    const yearStart = new Date(Date.UTC(start.getUTCFullYear() - 1, start.getUTCMonth(), 1));
+    const yearEnd = new Date(Date.UTC(end.getUTCFullYear() - 1, end.getUTCMonth(), 1));
     const toolWhere = department ? { ownerDepartment: { name: department } } : {};
     const userWhere = { status: 'ACTIVE' as const, ...(department ? { department: { name: department } } : {}) };
     const usersIn = (gte: Date, lt: Date) => this.prisma.user.count({ where: {
       ...userWhere, usageLogs: { some: { usageDate: { gte, lt }, sessionCount: { gt: 0 }, tool: toolWhere } },
     } });
     const [records, activeUsers, previousUsers, totalUsers, usage, tools] = await Promise.all([
-      this.prisma.costTracking.findMany({ where: { month: { gte: previousStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true, toolId: true } }),
+      this.prisma.costTracking.findMany({ where: { month: { gte: yearStart, lt: end }, tool: toolWhere }, select: { month: true, cost: true, toolId: true } }),
       usersIn(start, now), usersIn(previousStart, start),
       this.prisma.user.count({ where: userWhere }),
       this.prisma.usageLog.findMany({ where: { usageDate: { gte: previousStart, lt: now }, sessionCount: { gt: 0 }, tool: toolWhere }, select: { toolId: true, userId: true, usageDate: true } }),
@@ -754,7 +756,29 @@ export class AnalyticsService {
       for (const month of costs.months) item.months.add(month);
       departmentCosts.set(tool.ownerDepartment.name, item);
     }
+    const departmentWindow = (from: Date, to: Date) => {
+      const values = new Map<string, { cents: number; months: Set<string> }>();
+      const owners = new Map(tools.map(tool => [tool.id, tool.ownerDepartment.name]));
+      for (const row of records) {
+        const name = owners.get(row.toolId);
+        if (name === undefined || row.month < from || row.month >= to) continue;
+        const value = values.get(name) ?? { cents: 0, months: new Set<string>() };
+        value.cents += Math.round(Number(row.cost) * 100);
+        value.months.add(row.month.toISOString().slice(0, 7));
+        values.set(name, value);
+      }
+      return values;
+    };
+    const yearDepartments = departmentWindow(yearStart, yearEnd);
+    const currentDepartments = departmentWindow(start, end);
+    const comparisonDepartments = [...new Set([...currentDepartments.keys(), ...yearDepartments.keys()])].map(name => {
+      const current = currentDepartments.get(name);
+      const previous = yearDepartments.get(name);
+      return { name, current: current ? current.cents / 100 : null, previous: previous ? previous.cents / 100 : null,
+        current_recorded_months: current?.months.size ?? 0, previous_recorded_months: previous?.months.size ?? 0 };
+    }).sort((a, b) => (b.current ?? b.previous ?? 0) - (a.current ?? a.previous ?? 0) || a.name.localeCompare(b.name));
     return {
+      department_year_comparison: { start: yearStart.toISOString(), end: yearEnd.toISOString(), months, departments: comparisonDepartments },
       period_breakdown: {
         departments: [...departmentCosts].map(([name, value]) => ({ name, total: value.cents / 100, recorded_months: value.months.size })).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name)),
         tools: periodTools.sort((a, b) => a.name.localeCompare(b.name) || a.id.localeCompare(b.id)),

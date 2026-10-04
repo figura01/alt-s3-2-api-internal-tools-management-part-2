@@ -55,3 +55,16 @@ test('CSV period rankings and costs agree with charts and label current catalogu
   assert.ok(csv.includes('"Current catalogue","A",999,'));
   assert.ok(!csv.includes('"Most expensive tools (period)","A",999,'));
 });
+
+test('department comparison preserves missing history and suppresses incomplete differences', () => {
+  const { getDepartmentYearComparison } = load('src/utils/period-chart-data.ts');
+  const rows = getDepartmentYearComparison({ department_year_comparison: { months: 3, departments: [
+    { name: 'IT', current: 90, previous: 60, current_recorded_months: 3, previous_recorded_months: 3 },
+    { name: 'Partial', current: 90, previous: 20, current_recorded_months: 3, previous_recorded_months: 1 },
+    { name: 'Missing', current: null, previous: 10, current_recorded_months: 0, previous_recorded_months: 3 },
+    { name: 'Zero', current: 90, previous: 0, current_recorded_months: 3, previous_recorded_months: 3 },
+  ] } });
+  assert.equal(rows[0].difference, 30); assert.equal(rows[0].percentage, 50);
+  assert.equal(rows[1].difference, null); assert.equal(rows[2].current, null);
+  assert.equal(rows[3].difference, 90); assert.equal(rows[3].percentage, null);
+});

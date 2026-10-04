@@ -15,3 +15,12 @@ export function getPeriodChartData(analytics: Analytics) {
     leastUsed: [...tools].sort((a, b) => a.users - b.users || byName(a, b)).slice(0, 5),
   };
 }
+
+export function getDepartmentYearComparison(analytics: Analytics) {
+  const comparison = analytics.department_year_comparison;
+  return (comparison?.departments ?? []).map(item => {
+    const complete = item.current_recorded_months === comparison!.months && item.previous_recorded_months === comparison!.months;
+    const difference = complete && item.current !== null && item.previous !== null ? Math.round((item.current - item.previous) * 100) / 100 : null;
+    return { ...item, difference, percentage: difference !== null && item.previous! > 0 ? difference / item.previous! * 100 : null };
+  });
+}

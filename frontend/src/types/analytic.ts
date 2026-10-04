@@ -27,6 +27,10 @@ export type PeriodBreakdown = {
 };
 
 export type Analytics = {
+  department_year_comparison?: {
+    start: string; end: string; months: number;
+    departments: { name: string; current: number | null; previous: number | null; current_recorded_months: number; previous_recorded_months: number }[];
+  };
   period_breakdown?: PeriodBreakdown;
   period_usage?: { spend_without_usage: number | null; tools_without_usage: number; previous_spend_without_usage: number | null; active_users_change: number };
   period?: { start: string; end: string; months: number; recorded_months: number; total: number | null; budget: number };

@@ -28,7 +28,9 @@ import { getSpendComparisonByRange, getPreviousPeriodLabel, formatSpendMonth } f
 import { SpendComparisonTooltip } from "./spend-comparison-tooltip";
 import { useAppStore } from "@/store/store";
 
-import { getPeriodChartData } from "@/utils/period-chart-data";
+import { getDepartmentYearComparison, getPeriodChartData } from "@/utils/period-chart-data";
+
+import { DepartmentComparisonTooltip } from "./department-comparison-tooltip";
 
 import { useIsMobile } from "@/hooks/use-is-mobile";
 
@@ -60,6 +62,8 @@ export function CostAnalyticsSection({ data, range }: Props) {
   };
 
   const charts = getPeriodChartData(data.analytics);
+  const comparison = getDepartmentYearComparison(data.analytics);
+  const yearPeriod = data.analytics.department_year_comparison;
   const departmentCosts = charts.departments.filter(item => item.value > 0);
   const topExpensiveTools = charts.topExpensive.map(tool => ({ name: tool.name, cost: tool.total }));
 
@@ -158,6 +162,30 @@ export function CostAnalyticsSection({ data, range }: Props) {
               description="No positive recorded spending for this department and period."
             />
           )}
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card rounded-2xl xl:col-span-2">
+        <CardHeader>
+          <CardTitle>Department Spending · Year Comparison</CardTitle>
+          <p className="text-sm text-muted-foreground">{periodCaption(false)} · same calendar months last year{yearPeriod ? ` · ${formatSpendMonth(yearPeriod.start.slice(0, 7), locale)} – ${formatSpendMonth(new Date(new Date(yearPeriod.end).getTime() - 1).toISOString().slice(0, 7), locale)}` : ""}</p>
+          <div className="flex flex-wrap gap-5 text-sm" aria-label="Department comparison legend">
+            <span><span aria-hidden="true" className="mr-2 inline-block h-3 w-3 rounded bg-blue-500" />Selected period</span>
+            <span><span aria-hidden="true" className="mr-2 inline-block h-3 w-3 rounded bg-slate-400" />Same period last year</span>
+          </div>
+          <p className="text-sm text-muted-foreground">Recorded costs; current month partial, last year’s months complete. Missing history remains empty. Departments reflect current tool ownership.</p>
+        </CardHeader>
+        <CardContent style={{ height: Math.max(240, comparison.length * 80) }}>
+          {comparison.length ? <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={comparison} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" opacity={0.15} />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" width={isMobile ? 90 : 180} tick={{ fontSize: isMobile ? 10 : 12 }} />
+              <Tooltip filterNull={false} content={<DepartmentComparisonTooltip months={yearPeriod!.months} />} />
+              <Bar dataKey="current" name="Selected period" fill="#3b82f6" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="previous" name="Same period last year" fill="#94a3b8" radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer> : <EmptyState title="No department comparison data" description="No recorded costs for these periods and department scope." />}
         </CardContent>
       </Card>
 

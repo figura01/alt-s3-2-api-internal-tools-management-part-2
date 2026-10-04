@@ -100,4 +100,13 @@ describe('period analytics', () => {
     const { service } = setup([]);
     expect((await service.getAnalytics(undefined, '1m')).period_breakdown).toEqual({ departments: [], tools: [] });
   });
+  it('compares the same calendar months last year rather than the preceding quarter', async () => {
+    const { service, prisma } = setup(['2024-12', '2025-01', '2025-02', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02']);
+    const result = await service.getAnalytics('Engineering', '3m');
+    expect(prisma.costTracking.findMany.mock.calls[0][0].where.month.gte).toEqual(new Date('2024-12-01'));
+    expect(result.department_year_comparison).toMatchObject({ start: '2024-12-01T00:00:00.000Z', end: '2025-03-01T00:00:00.000Z', departments: [{ name: 'Engineering', current: 30.3, previous: 30.3, previous_recorded_months: 3 }] });
+    const missing = await setup(['2026-02']).service.getAnalytics(undefined, '1m');
+    expect(missing.department_year_comparison!.departments[0].previous).toBeNull();
+  });
+
 });
